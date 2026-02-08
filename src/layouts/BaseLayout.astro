@@ -1,0 +1,101 @@
+---
+import HTML5 from "@cyberfinity/polymorph-components-astro/layouts/HTML5.astro";
+
+export interface Props {
+  title: string;
+  heading?: string;
+  currentNavLinkIndex?: number;
+  pageNavAllLinks?: boolean;
+  isPopup?: boolean;
+  isErrorPage?: boolean;
+}
+
+const {
+  title,
+  heading = title,
+  currentNavLinkIndex,
+  pageNavAllLinks = false,
+  isPopup = false,
+  isErrorPage = false,
+} = Astro.props;
+
+interface NavLink {
+  title: string;
+  url: string;
+}
+
+const navLinks: NavLink[] = [
+  { title: "Home", url: "/" },
+  { title: "Gästebuch", url: "/gaestebuch/" },
+  { title: "Links", url: "/links/" },
+];
+---
+
+<HTML5 title="Abi1" htmlProps={{ lang: "de" }}>
+  <Fragment slot="head-content">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      media="screen"
+      href="/style/screen/base.css"
+    />
+    {
+      isPopup ? (
+        <link
+          rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="/style/screen/popup.css"
+        />
+      ) : (
+        <link
+          rel="stylesheet"
+          type="text/css"
+          media="screen"
+          href="/style/screen/full.css"
+        />
+      )
+    }
+    <slot name="head-content" />
+  </Fragment>
+  <div id="banner">
+    <h1
+      class:list={{
+        error: isErrorPage,
+      }}
+    >
+      {heading}
+    </h1>
+    {Astro.slots.has('sub-heading') ? <p class="subheading"><slot name="sub-heading" /></p> : null}
+  </div>
+  {
+    isPopup ? null : (
+      <ul id="navigation">
+        {navLinks.map((navLink, index) => (
+          <li>
+            {index === currentNavLinkIndex ? (
+              pageNavAllLinks ? (
+                <a href={navLink.url} class="highlight">
+                  {navLink.title}
+                </a>
+              ) : (
+                <span>{navLink.title}</span>
+              )
+            ) : (
+              <a href={navLink.url}>{navLink.title}</a>
+            )}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+  <div id="main">
+    <slot />
+  </div>
+  <div id="footer">
+    { isPopup ?
+    <p>&copy; 2001 - { (new Date()).getFullYear()} Moritz Tybus, James Nash &amp; Nils Hesse.</p> : <p>&copy; 2001 - { (new Date()).getFullYear()} Moritz Tybus, <a href="https://cirrus.twiddles.com/">James Nash</a> &amp; Nils Hesse.</p>
+			<p>Hosting: <a href="https://www.cyberfinity.net/">Cyberfinity</a></p>}
+  </div>
+</HTML5>

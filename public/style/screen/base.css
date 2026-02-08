@@ -1,0 +1,129 @@
+/* Global stuff */
+body {
+	background: #d0d0d0 url('top_bg.png') repeat-x top left;
+	padding: 0;
+	margin: 0;
+	font-size: 9pt;
+	font-family: "Verdana", sans-serif;
+	color: #4c0c67;
+}
+
+.monospace {
+	font-family: "Courier New", monospace;
+}
+
+abbr, acronym {
+	text-decoration: none;
+	border: none;
+}
+
+p, ul, ol, dl, blockquote {
+	margin: 0 0 1em 0;
+	line-height: 1.2em;
+}
+
+dl {
+	padding: 0;
+}
+dt {
+	padding: 0;
+	margin: 0 0 0.4em 0;
+}
+dd {
+	padding: 0;
+	margin: 0 0 1em 2.5em;
+}
+
+
+a:link {
+	color: #115691;
+}
+
+a:visited {
+	color: #804194;
+}
+
+a:hover, a:active {
+	color: #529bd9;
+	background-color: #fff;
+}
+
+h1, .subtitle {
+	font-family: "Trebuchet MS", sans-serif;
+	padding: 0;
+	margin: 0 0 0.1em 0;
+	font-size: 1.3em;
+}
+
+h1 {
+	font-size: 2.4em;
+}
+
+h1.error {
+	min-height: 34px;
+	padding-left: 38px;
+	background: url('error.png') no-repeat top left;
+}
+
+h2 {
+	font-family: "Trebuchet MS", sans-serif;
+	clear: both;
+}
+
+.hidden {
+	display: none;
+}
+
+/* content sections */
+
+#main, #footer {
+	clear: both;
+	text-align: justify;
+}
+
+
+/* footer specific */
+#footer {
+	border-top: #804194 1px solid;
+	margin-top: 2.5em;
+	padding-top: 0.5em;
+	font-size: 0.8em;
+}
+
+
+/* icon selector */
+#icon-form div {
+	line-height: 1em;
+	font-size: 0.8em;
+	width: 100px;
+	margin: 5px;
+	padding: 0;
+	float: left;
+	background: #f0e16c url('icon-sel-top.png') no-repeat top left;
+	text-align: center;
+}
+
+#icon-form input {
+	width: 40px;
+	height: 40px;
+	padding: 2px;
+	margin: 5px;
+	border: 1px solid #115691;
+}
+
+#icon-form input:hover {
+	background-color: #fff;
+}
+
+#icon-form label {
+	display: block;
+	border-top: 2px solid #e9309a;
+	padding: 5px;
+	height: 2em;
+	background: #3f3f3f url('icon-sel-bottom.png') no-repeat bottom left;
+	color: #bd82d0;
+}
+
+.clear {
+	clear: both;
+}

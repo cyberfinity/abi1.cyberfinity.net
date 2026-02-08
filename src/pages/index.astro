@@ -1,7 +1,17 @@
 ---
-import HTML5 from "@cyberfinity/polymorph-components-astro/layouts/HTML5.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<HTML5 title="Abi1">
-  <h1>Abi1</h1>
-</HTML5>
+<BaseLayout
+  title="'Abi1 - DSL Abitur Jahrgang 2001"
+  heading="Abi1"
+  currentNavLinkIndex={0}
+>
+  <Fragment name="sub-heading"
+    >Offizielle Webseite des <acronym title="Deutsche Schule London"
+      >DSL</acronym
+    >
+    <strong>Abiturjahrgangs 2001</strong></Fragment
+  >
+  <p>Hier entsteht die neue Abiseite des DSL Jahrgangs 2001.</p>
+</BaseLayout>
