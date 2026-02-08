@@ -93,6 +93,7 @@ const navLinks: NavLink[] = [
   <div id="main">
     <slot />
   </div>
+  {Astro.slots.has('secondary') ? <div id="secondary"><slot name="secondary" /></div> : null}
   <div id="footer">
     { isPopup ?
     <p>&copy; 2001 - { (new Date()).getFullYear()} Moritz Tybus, James Nash &amp; Nils Hesse.</p> : <p>&copy; 2001 - { (new Date()).getFullYear()} Moritz Tybus, <a href="https://cirrus.twiddles.com/">James Nash</a> &amp; Nils Hesse.</p>
