@@ -1,9 +1,0 @@
----
-import BaseLayout from "../layouts/BaseLayout.astro";
-export const prerender = false;
----
-
-<BaseLayout title="TMP SSR TEST">
-  <p>This page was server-side rendered.</p>
-  <pre><code>{ JSON.stringify(Astro.request.headers.entries(), undefined, 2) }</code></pre>
-</BaseLayout>
