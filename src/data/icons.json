@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "name": "Atompilz",
+    "fileName": "nuke.png",
+    "category": 1
+  },
+  {
+    "id": 2,
+    "name": "Totenkopf",
+    "fileName": "pirate.png",
+    "category": 2
+  },
+  {
+    "id": 3,
+    "name": "Yin-Yang",
+    "fileName": "yin-yang.png",
+    "category": 2
+  },
+  {
+    "id": 10,
+    "name": "Überrascht",
+    "fileName": "boese-ueberrascht.png",
+    "category": 5
+  },
+  {
+    "id": 7,
+    "name": "Abi1 2001 - 2006 Alte Webseite",
+    "fileName": "abi1-old.png",
+    "category": 4
+  },
+  {
+    "id": 12,
+    "name": "Abi1 Webseite",
+    "fileName": "abi1-banner.png",
+    "category": 1
+  },
+  {
+    "id": 14,
+    "name": "Das originale DSL logo",
+    "fileName": "altes_dsl_logo.png",
+    "category": 6
+  },
+  {
+    "id": 9,
+    "name": "Grinsend",
+    "fileName": "boese-grins.png",
+    "category": 5
+  },
+  {
+    "id": 11,
+    "name": "Chilled",
+    "fileName": "boese-chilled.png",
+    "category": 5
+  },
+  {
+    "id": 8,
+    "name": "Ärgerlich",
+    "fileName": "boese-aergerlich.png",
+    "category": 5
+  },
+  {
+    "id": 18,
+    "name": "Douglas House",
+    "fileName": "douglas_house.png",
+    "category": 6
+  },
+  {
+    "id": 19,
+    "name": "Biohazard",
+    "fileName": "biohazard.gif",
+    "category": 2
+  },
+  {
+    "id": 20,
+    "name": "Burpman",
+    "fileName": "burpman.png",
+    "category": 8
+  },
+  {
+    "id": 21,
+    "name": "Geldbeutel",
+    "fileName": "geldbeutel.png",
+    "category": 8
+  },
+  {
+    "id": 22,
+    "name": "Herz",
+    "fileName": "heart.jpg",
+    "category": 2
+  },
+  {
+    "id": 23,
+    "name": "DSL LSD",
+    "fileName": "lsd.png",
+    "category": 1
+  },
+  {
+    "id": 24,
+    "name": "Krank",
+    "fileName": "boese-krank.png",
+    "category": 5
+  },
+  {
+    "id": 25,
+    "name": "Traurig",
+    "fileName": "boese-traurig.png",
+    "category": 5
+  },
+  {
+    "id": 13,
+    "name": "Juuarrrr!!",
+    "fileName": "juarr.gif",
+    "category": 8
+  },
+  {
+    "id": 17,
+    "name": "Abizeitung",
+    "fileName": "blitz_und_feuer.png",
+    "category": 1
+  }
+]
