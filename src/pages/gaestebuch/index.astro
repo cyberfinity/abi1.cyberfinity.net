@@ -1,5 +1,9 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+
+import { sql } from "../../lib/neon.js";
+
+const response = await sql`SELECT name, filename FROM icons;`;
 ---
 
 <BaseLayout
@@ -7,6 +11,17 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   heading="Gästebuch"
   currentNavLinkIndex={1}
 >
+  <p>Icons:</p>
+  <ul>
+    {
+      response.map((row) => (
+        <li>
+          name: {row[0]}, filename: {row[1]}
+        </li>
+      ))
+    }
+  </ul>
+
   <div slot="secondary" class="box">links in here</div>
   <div slot="secondary" class="box">
     <h2 class="top">Archiv</h2>
