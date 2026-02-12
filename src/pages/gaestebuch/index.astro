@@ -1,6 +1,7 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
+export const prerender = false;
 
+import BaseLayout from "../../layouts/BaseLayout.astro";
 import { sql } from "../../lib/neon.js";
 
 const response = await sql`SELECT name, filename FROM icons;`;
@@ -16,7 +17,7 @@ const response = await sql`SELECT name, filename FROM icons;`;
     {
       response.map((row) => (
         <li>
-          name: {row[0]}, filename: {row[1]}
+          name: {row.name}, filename: {row.filename}
         </li>
       ))
     }
