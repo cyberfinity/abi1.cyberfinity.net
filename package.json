@@ -15,5 +15,8 @@
     "@neondatabase/serverless": "^1.0.2",
     "astro": "^5.17.2",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "dotenv": "^17.3.1"
   }
 }
