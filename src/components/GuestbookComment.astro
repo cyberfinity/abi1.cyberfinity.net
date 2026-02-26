@@ -1,0 +1,76 @@
+---
+export interface Props {
+  permalink?: string | URL;
+  iconSrc: string;
+  iconAlt: string;
+  name: string;
+  date: Date;
+  comment: string;
+}
+
+const { permalink, iconSrc, iconAlt, name, date, comment } = Astro.props;
+
+const germanMonthNames = [
+  "Januar",
+  "Februar",
+  "März",
+  "April",
+  "Mai",
+  "Juni",
+  "Juli",
+  "August",
+  "September",
+  "Oktober",
+  "November",
+  "Dezember",
+];
+
+const germanWeekdays = [
+  "Sonntag", // Date getUTCDay() 0 = Sunday
+  "Montag",
+  "Dienstag",
+  "Mittwoch",
+  "Donnerstag",
+  "Freitag",
+  "Samstag",
+];
+
+function formatData(date: Date): string {
+  return `${germanWeekdays[date.getUTCDay()]}, ${date.getUTCDate()}. ${germanMonthNames[date.getMonth()]} ${date.getUTCFullYear()} ${date.toUTCString().substring(17, 25)}`;
+}
+
+const paragraphBreakRegex = /[\n\r]{2,}/g;
+const lineBreakRegex = /[\n\r]/g;
+---
+
+<div class="comment box">
+  <p class="title">
+    <img src={iconSrc} alt={iconAlt} />
+    <strong>{name}</strong> schrieb am {
+      permalink === undefined ? (
+        <time datetime={date.toISOString()}>{formatData(date)}</time>
+      ) : (
+        <a href={permalink} rel="bookmark">
+          <time datetime={date.toISOString()}>{formatData(date)}</time>
+        </a>
+      )
+    }
+  </p>
+  {
+    comment
+      .split(paragraphBreakRegex)
+      .map((paragraphText) =>
+        paragraphText.split(lineBreakRegex).map((line, i) =>
+          i === 0 ? (
+            line.trim()
+          ) : (
+            <>
+              <br />
+              {line.trim()}
+            </>
+          ),
+        ),
+      )
+      .map((para) => <p>{para}</p>)
+  }
+</div>

@@ -83,13 +83,15 @@
 
 .comment p, .comment dl {
 	clear: both;
-	margin: 0 12px 0 12px;
+	margin: 0 12px 1em 12px;
 	padding: 0;
 }
 
-.comment p.gap {
-	margin-bottom: 1.3em;
+.comment > :last-child {
+  margin-bottom: 0;
 }
+
+
 
 .comment dt {
 	font-weight: bold;
