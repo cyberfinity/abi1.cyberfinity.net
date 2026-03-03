@@ -1,10 +1,12 @@
 ---
-export const prerender = false;
+// export const prerender = false;
 
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { sql } from "../../lib/neon.js";
+// import GuestbookComment from "../../components/GUesbookComment/GuestbookComment.astro";
+import Pagination from "../../components/Pagination/Pagination.astro";
+// import { sql } from "../../lib/neon.js";
 
-const response = await sql`SELECT name, filename FROM icons;`;
+// const response = await sql`SELECT name, filename FROM icons;`;
 ---
 
 <BaseLayout
@@ -12,16 +14,7 @@ const response = await sql`SELECT name, filename FROM icons;`;
   heading="Gästebuch"
   currentNavLinkIndex={1}
 >
-  <p>Icons:</p>
-  <ul>
-    {
-      response.map((row) => (
-        <li>
-          name: {row.name}, filename: {row.filename}
-        </li>
-      ))
-    }
-  </ul>
+  <Pagination pageCount={999} pageCurrentIndex={4} />
 
   <div slot="secondary" class="box">links in here</div>
   <div slot="secondary" class="box">

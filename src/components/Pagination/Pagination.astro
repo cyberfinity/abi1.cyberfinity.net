@@ -1,0 +1,111 @@
+---
+/**
+ * Function that returns the URL that corresponds to the
+ * given page index (zero based).
+ */
+export type PageLinkFn = (pageIndex: number) => string | URL;
+
+export interface Props {
+  /**
+   * Total number pages.
+   */
+  pageCount: number;
+
+  /**
+   * Current page index (zero based).
+   */
+  pageCurrentIndex: number;
+
+  /**
+   * The total number of pagination links, including
+   * a non-link for the current page, to display.
+   *
+   * Odd numbers are recommended, so that and equal
+   * number of links can be shown either side of
+   * the current page.
+   */
+  maxLinks?: number;
+}
+
+const { pageCount, pageCurrentIndex, maxLinks = 9 } = Astro.props;
+
+// Validate props
+if (pageCount <= 0 || pageCurrentIndex < 0 || pageCount <= pageCurrentIndex) {
+  throw Error("Invalid pageCount or currentPageIndex");
+}
+
+interface PaginationLink {
+  pageIndex: number;
+  type: "previous" | "current" | "subsequent";
+}
+
+function* getPaginationLinks(
+  pageCount: number,
+  pageCurrentIndex: number,
+  maxLinks: number,
+): Generator<PaginationLink> {
+  // page* vars relate to the complete set of pages
+  // link* vars relate to the list of pagination links
+
+  const linkCount = Math.min(maxLinks, pageCount);
+
+  // Ideally, we show a (roughly) equal number of
+  // preceding and following page links
+  let linkCurrentIndex = Math.floor(linkCount / 2);
+  let linkPrecedingCount = linkCurrentIndex;
+  const linkFollowingCount = linkCount - linkPrecedingCount - 1;
+
+  if (pageCurrentIndex - linkPrecedingCount < 0) {
+    // current page is closer to the start, than the
+    // middle of the links.
+    // Adjust link values accordingly
+    const delta = pageCurrentIndex - linkPrecedingCount;
+    linkCurrentIndex += delta;
+    linkPrecedingCount += delta;
+  } else if (pageCurrentIndex + linkFollowingCount >= pageCount) {
+    // current page is closer to the end, than the
+    // middle of the links
+    // Adjust link values accordingly
+    const delta = pageCurrentIndex + linkFollowingCount + 1 - pageCount;
+    linkCurrentIndex -= delta;
+    linkPrecedingCount += delta;
+  }
+
+  // Generate link details
+  for (let linkIndex = 0; linkIndex < linkCount; linkIndex++) {
+    const pageIndex = pageCurrentIndex - linkPrecedingCount + linkIndex;
+
+    let type: PaginationLink["type"] = "current";
+    if (pageIndex < pageCurrentIndex) {
+      // link to a previous page
+      type = "previous";
+    } else if (pageIndex > pageCurrentIndex) {
+      // link to a subsequent page
+      type = "subsequent";
+    }
+
+    yield {
+      pageIndex,
+      type,
+    };
+  }
+}
+---
+
+<ol class="navigation">
+  {
+    getPaginationLinks(pageCount, pageCurrentIndex, maxLinks).map((link) =>
+      link.type === "current" ? (
+        <li class="current">
+          <span>Seite {link.pageIndex + 1}</span>
+        </li>
+      ) : (
+        <li class={link.type === "previous" ? "prev" : "next"}>
+          <a href={link.pageIndex === 0 ? "" : `./seite${link.pageIndex + 1}`}>
+            Seite {link.pageIndex + 1}
+          </a>
+        </li>
+      ),
+    )
+  }
+</ol>
