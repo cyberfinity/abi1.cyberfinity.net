@@ -1,14 +1,11 @@
 ---
-export interface Props {
-  permalink?: string | URL;
-  iconSrc: string;
-  iconAlt: string;
-  name: string;
-  date: Date;
-  comment: string;
-}
+import Icon from "../Icon/Icon.astro";
+import { type GuestbookEntry } from "../../utils/guestbook.js";
 
-const { permalink, iconSrc, iconAlt, name, date, comment } = Astro.props;
+export interface Props extends GuestbookEntry {}
+
+const { permalink, iconCustomUrl, iconFilename, iconAlt, name, date, comment } =
+  Astro.props;
 
 const germanMonthNames = [
   "Januar",
@@ -45,7 +42,7 @@ const lineBreakRegex = /[\n\r]/g;
 
 <div class="comment box">
   <p class="title">
-    <img src={iconSrc} alt={iconAlt} />
+    <Icon customUrl={iconCustomUrl} filename={iconFilename} alt={iconAlt} />
     <strong>{name}</strong> schrieb am {
       permalink === undefined ? (
         <time datetime={date.toISOString()}>{formatData(date)}</time>
