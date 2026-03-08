@@ -1,5 +1,6 @@
 import { gravatarUrl } from "./gravatar.js";
 import { sql } from "../lib/neon.js";
+import { type EntryRow, type IconRow } from "../types/guestbook-db-schema.js";
 
 export interface GuestbookEntry {
   permalink?: string | URL;
@@ -11,14 +12,9 @@ export interface GuestbookEntry {
   comment: string;
 }
 
-interface DbGuestbookEntry {
-  id: number;
-  name: string;
-  date: string;
-  entry: string;
-  email_sha256: string | null;
-  icon_filename: string | null;
-  icon_name: string | null;
+export interface DbGuestbookEntry extends EntryRow {
+  icon_filename: IconRow["filename"];
+  icon_name: IconRow["name"];
 }
 
 function toGuestbookEntry(dbEntry: DbGuestbookEntry): GuestbookEntry {
