@@ -10,14 +10,14 @@ async function readJson(filename) {
 }
 
 async function updateIconCategories() {
-  const originalEntries = await readJson("./src/data/icon-categories.json");
-  const existingDbRows = await sql`SELECT name FROM "icon-categories";`;
+  const originalEntries = await readJson("./icon-categories.json");
+  const existingDbRows = await sql`SELECT id FROM "icon-categories";`;
 
   // Find all original entries not yet in DB
   const entriesToInsert = originalEntries.filter(
     (originalEntry) =>
       // check that DB does not contain this entry
-      !existingDbRows.some((row) => row.name === originalEntry.name),
+      !existingDbRows.some((row) => row.id === originalEntry.id),
   );
 
   if (entriesToInsert.length > 0) {
@@ -35,14 +35,14 @@ async function updateIconCategories() {
 }
 
 async function updateIcons() {
-  const originalEntries = await readJson("./src/data/icons.json");
-  const existingDbRows = await sql`SELECT name FROM "icons";`;
+  const originalEntries = await readJson("./icons.json");
+  const existingDbRows = await sql`SELECT id FROM "icons";`;
 
   // Find all original entries not yet in DB
   const entriesToInsert = originalEntries.filter(
     (originalEntry) =>
       // check that DB does not contain this entry
-      !existingDbRows.some((row) => row.name === originalEntry.name),
+      !existingDbRows.some((row) => row.id === originalEntry.id),
   );
 
   if (entriesToInsert.length > 0) {
@@ -60,30 +60,28 @@ async function updateIcons() {
 }
 
 async function updateEntries() {
-  const originalEntries = await readJson("./src/data/entries.json");
-  const existingDbRows = await sql`SELECT name, date FROM "entries";`;
+  const originalEntries = await readJson("./entries.json");
+  const existingDbRows = await sql`SELECT id FROM "entries";`;
 
   // Find all original entries not yet in DB
   const entriesToInsert = originalEntries.filter(
     (originalEntry) =>
       // check that DB does not contain this entry
-      !existingDbRows.some(
-        (row) =>
-          row.name === originalEntry.name && row.date === originalEntry.date,
-      ),
+      !existingDbRows.some((row) => row.id === originalEntry.id),
   );
 
   if (entriesToInsert.length > 0) {
-    const result = await sql.transaction(
-      entriesToInsert.map(
-        (
-          entry,
-        ) => sql`INSERT INTO "entries" (id, date, name, "email-sha256", entry, icon)
-      OVERRIDING SYSTEM VALUE
-      VALUES (${entry.id},${entry.date}, ${entry.name}, ${entry.emailSha256 ?? null}, ${entry.entry}, ${entry.icon ?? null});`,
-      ),
-    );
-    console.log("Added missing original entries to entries table.");
+    console.log(entriesToInsert);
+    // const result = await sql.transaction(
+    //   entriesToInsert.map(
+    //     (
+    //       entry,
+    //     ) => sql`INSERT INTO "entries" (id, date, name, email_sha256, entry, icon)
+    //   OVERRIDING SYSTEM VALUE
+    //   VALUES (${entry.id},${entry.date}, ${entry.name}, ${entry.emailSha256 ?? null}, ${entry.entry}, ${entry.icon ?? null});`,
+    //   ),
+    // );
+    // console.log("Added missing original entries to entries table.");
   } else {
     console.log("entries table already contains all original entries.");
   }
