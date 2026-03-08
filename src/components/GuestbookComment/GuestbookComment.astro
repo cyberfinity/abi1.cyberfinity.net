@@ -1,39 +1,18 @@
 ---
 import Icon from "../Icon/Icon.astro";
 import { type GuestbookEntry } from "../../utils/guestbook.js";
+import {
+  getGermanMonthName,
+  getGermanWeekdayName,
+} from "../../utils/german-dates.js";
 
 export interface Props extends GuestbookEntry {}
 
 const { permalink, iconCustomUrl, iconFilename, iconAlt, name, date, comment } =
   Astro.props;
 
-const germanMonthNames = [
-  "Januar",
-  "Februar",
-  "März",
-  "April",
-  "Mai",
-  "Juni",
-  "Juli",
-  "August",
-  "September",
-  "Oktober",
-  "November",
-  "Dezember",
-];
-
-const germanWeekdays = [
-  "Sonntag", // Date getUTCDay() 0 = Sunday
-  "Montag",
-  "Dienstag",
-  "Mittwoch",
-  "Donnerstag",
-  "Freitag",
-  "Samstag",
-];
-
 function formatData(date: Date): string {
-  return `${germanWeekdays[date.getUTCDay()]}, ${date.getUTCDate()}. ${germanMonthNames[date.getMonth()]} ${date.getUTCFullYear()} ${date.toUTCString().substring(17, 25)}`;
+  return `${getGermanWeekdayName(date)}, ${date.getUTCDate()}. ${getGermanMonthName(date)} ${date.getUTCFullYear()} ${date.toUTCString().substring(17, 25)}`;
 }
 
 const paragraphBreakRegex = /[\n\r]{2,}/g;
