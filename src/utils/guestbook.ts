@@ -30,6 +30,7 @@ function toGuestbookEntry(dbEntry: DbGuestbookEntry): GuestbookEntry {
   }
   if (email_sha256 !== null) {
     iconProps.iconCustomUrl = gravatarUrl(email_sha256, { size: 80 });
+    iconProps.iconAlt = `Gravatar von ${name}`;
   }
   if (icon_filename !== null) {
     iconProps.iconFilename = icon_filename;
@@ -52,7 +53,7 @@ export async function fetchEntries(
 }> {
   const [dbEntriesCount, dbEntries] = await sql.transaction([
     sql`SELECT COUNT(*) FROM entries`,
-    sql`SELECT icons.filename AS icon_filename, icons.name AS icon_name, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries, icons WHERE entries.icon = icons.id ORDER BY entries.date DESC OFFSET ${offset} LIMIT ${limit}`,
+    sql`(SELECT icons.filename AS icon_filename, icons.name AS icon_name, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries, icons WHERE entries.icon = icons.id) UNION (SELECT NULL as icon_filename, NULL as icon_name, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries WHERE icon IS NULL) ORDER BY date DESC OFFSET ${offset} LIMIT ${limit}`,
   ]);
 
   return {

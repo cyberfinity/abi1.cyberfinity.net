@@ -17,6 +17,11 @@ export interface Props {
   pageCurrentIndex: number;
 
   /**
+   * Function to generate a link URL for a given page index.
+   */
+  pageLinkFn: PageLinkFn;
+
+  /**
    * The total number of pagination links, including
    * a non-link for the current page, to display.
    *
@@ -27,7 +32,7 @@ export interface Props {
   maxLinks?: number;
 }
 
-const { pageCount, pageCurrentIndex, maxLinks = 9 } = Astro.props;
+const { pageCount, pageCurrentIndex, pageLinkFn, maxLinks = 9 } = Astro.props;
 
 // Validate props
 if (pageCount <= 0 || pageCurrentIndex < 0 || pageCount <= pageCurrentIndex) {
@@ -101,9 +106,7 @@ function* getPaginationLinks(
         </li>
       ) : (
         <li class={link.type === "previous" ? "prev" : "next"}>
-          <a href={link.pageIndex === 0 ? "" : `./seite${link.pageIndex + 1}`}>
-            Seite {link.pageIndex + 1}
-          </a>
+          <a href={pageLinkFn(link.pageIndex)}>Seite {link.pageIndex + 1}</a>
         </li>
       ),
     )
