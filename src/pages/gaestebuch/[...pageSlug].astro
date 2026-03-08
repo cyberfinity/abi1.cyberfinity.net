@@ -14,6 +14,7 @@ const pageSlugNumber =
   pageSlug === undefined ? undefined : parseInt(pageSlug.substring(5));
 
 if (pageSlugNumber === 1) {
+  // ./seite1 --> ./ (permanent)
   return Astro.redirect("./", 301);
 }
 
@@ -52,6 +53,7 @@ const isLastPage = pageCurrentIndex === pageCount - 1;
     >Seite {pageCurrentIndex + 1} von {pageCount}</Fragment
   >
 
+  <!--TODO: Implement posting
   <h2 class="hidden">Neuer Eintrag</h2>
   <form method="post" action="./" id="gb-entry-form" accept-charset="utf-8">
     <dl>
@@ -103,6 +105,7 @@ const isLastPage = pageCurrentIndex === pageCount - 1;
       <button id="gb-submit-button" name="gb-submit"> Eintragen </button>
     </div>
   </form>
+  -->
 
   <h2 class="hidden">Einträge</h2>
   {entries.map((entry) => <GuestbookComment {...entry} />)}
