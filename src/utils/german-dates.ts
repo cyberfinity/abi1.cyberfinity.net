@@ -34,3 +34,7 @@ export function getGermanWeekdayName(
 ): (typeof germanWeekdays)[number] {
   return germanWeekdays[date.getUTCDay()]!;
 }
+
+export function formatDate(date: Date): string {
+  return `${getGermanWeekdayName(date)}, ${date.getUTCDate()}. ${getGermanMonthName(date)} ${date.getUTCFullYear()} ${date.toUTCString().substring(17, 25)}`;
+}

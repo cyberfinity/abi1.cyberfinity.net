@@ -1,0 +1,21 @@
+---
+export const prerender = false;
+
+import GuestbookComment from "../../components/GuestbookComment/GuestbookComment.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatDate } from "../../utils/german-dates";
+import { fetchEntry } from "../../utils/guestbook.js";
+
+const { id } = Astro.params;
+// TODO: error handling for invalid ids
+
+const entry = await fetchEntry(parseInt(id ?? "-1"));
+---
+
+<BaseLayout
+  title={`Abi1 - Gästebucheintrag von ${entry.name} am ${formatDate(entry.date)}`}
+  heading={`Gästebucheintrag von ${entry.name}`}
+  currentNavLinkIndex={1}
+>
+  <GuestbookComment {...entry} excludePermalink={true} />
+</BaseLayout>

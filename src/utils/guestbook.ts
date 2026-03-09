@@ -3,7 +3,7 @@ import { sql } from "../lib/neon.js";
 import { type EntryRow, type IconRow } from "../types/guestbook-db-schema.js";
 
 export interface GuestbookEntry {
-  permalink?: string | URL;
+  permalink: string | URL;
   iconFilename?: string;
   iconCustomUrl?: string | URL;
   iconAlt?: string;
@@ -17,8 +17,12 @@ export interface DbGuestbookEntry extends EntryRow {
   icon_name: IconRow["name"];
 }
 
+export function getGuestbookEntryPath(id: number): string {
+  return `/gaestebuch/eintrag${id}`;
+}
+
 function toGuestbookEntry(dbEntry: DbGuestbookEntry): GuestbookEntry {
-  const { /*id,*/ name, date, entry, email_sha256, icon_filename, icon_name } =
+  const { id, name, date, entry, email_sha256, icon_filename, icon_name } =
     dbEntry;
 
   const iconProps: Pick<
@@ -38,6 +42,7 @@ function toGuestbookEntry(dbEntry: DbGuestbookEntry): GuestbookEntry {
 
   return {
     name,
+    permalink: getGuestbookEntryPath(id),
     date: new Date(date),
     comment: entry,
     ...iconProps,
@@ -53,7 +58,7 @@ export async function fetchEntries(
 }> {
   const [dbEntriesCount, dbEntries] = await sql.transaction([
     sql`SELECT COUNT(*) FROM entries`,
-    sql`(SELECT icons.filename AS icon_filename, icons.name AS icon_name, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries, icons WHERE entries.icon = icons.id) UNION (SELECT NULL as icon_filename, NULL as icon_name, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries WHERE icon IS NULL) ORDER BY date DESC OFFSET ${offset} LIMIT ${limit}`,
+    sql`(SELECT icons.filename AS icon_filename, icons.name AS icon_name, entries.id, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries, icons WHERE entries.icon = icons.id) UNION (SELECT NULL as icon_filename, NULL as icon_name, entries.id, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries WHERE icon IS NULL) ORDER BY date DESC OFFSET ${offset} LIMIT ${limit}`,
   ]);
 
   return {
@@ -61,4 +66,10 @@ export async function fetchEntries(
     entriesCount:
       (dbEntriesCount as { count: number }[] | undefined)?.[0]?.count ?? 0,
   };
+}
+
+export async function fetchEntry(id: number): Promise<GuestbookEntry> {
+  const dbEntry =
+    (await sql`(SELECT icons.filename AS icon_filename, icons.name AS icon_name, entries.id, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries, icons WHERE entries.icon = icons.id AND entries.id = ${id}) UNION (SELECT NULL as icon_filename, NULL as icon_name, entries.id, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries WHERE icon IS NULL AND entries.id = ${id})`) as DbGuestbookEntry[];
+  return toGuestbookEntry(dbEntry[0]!);
 }
