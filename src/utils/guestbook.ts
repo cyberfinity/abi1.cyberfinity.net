@@ -73,3 +73,105 @@ export async function fetchEntry(id: number): Promise<GuestbookEntry> {
     (await sql`(SELECT icons.filename AS icon_filename, icons.name AS icon_name, entries.id, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries, icons WHERE entries.icon = icons.id AND entries.id = ${id}) UNION (SELECT NULL as icon_filename, NULL as icon_name, entries.id, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries WHERE icon IS NULL AND entries.id = ${id})`) as DbGuestbookEntry[];
   return toGuestbookEntry(dbEntry[0]!);
 }
+
+interface DbMonthlyCount {
+  year: string;
+  month: string;
+  count: string;
+}
+
+export interface YearCount {
+  year: number;
+  entriesCount: number;
+}
+
+export interface MonthCount {
+  year: number;
+  month: number;
+  entriesCount: number;
+}
+
+export async function getArchiveStats() {
+  const dbMonthCounts =
+    (await sql`SELECT EXTRACT(YEAR FROM date) as year, EXTRACT(MONTH FROM date) as month, COUNT(*) FROM entries GROUP BY year, month ORDER BY year, month ASC;`) as DbMonthlyCount[];
+
+  const monthCounts: MonthCount[] = dbMonthCounts.map((dbMonthCount) => ({
+    year: parseInt(dbMonthCount.year),
+    month: parseInt(dbMonthCount.month),
+    entriesCount: parseInt(dbMonthCount.count),
+  }));
+
+  return {
+    /**
+     * Total number of entries in guestbook.
+     */
+    getTotalEntriesCount(): number {
+      return monthCounts.reduce((sum, monthCount) => {
+        return monthCount.entriesCount + sum;
+      }, 0);
+    },
+
+    /**
+     * Stats for each year that has guestbook entries.
+     */
+    getYearCounts(): YearCount[] {
+      return monthCounts.reduce((yearCounts, monthCount) => {
+        // Find existing stats for the same year as this
+        // month, if any.
+        let currentYearCount = yearCounts.find(
+          (yearStat) => yearStat.year === monthCount.year,
+        );
+
+        if (currentYearCount === undefined) {
+          // None existed, so initialise a new one
+          currentYearCount = { year: monthCount.year, entriesCount: 0 };
+          yearCounts.push(currentYearCount);
+        }
+
+        currentYearCount.entriesCount += monthCount.entriesCount;
+
+        return yearCounts;
+      }, [] as YearCount[]);
+    },
+
+    getPaddedYearCounts(): YearCount[] {
+      const yearCounts = this.getYearCounts();
+      const missingYears: YearCount[] = [];
+      let previousYear: number | undefined;
+      for (const yearCount of yearCounts) {
+        if (previousYear !== undefined && yearCount.year > previousYear + 1) {
+          // we've skipped some years, so need to fill the gap
+          for (
+            let missingYear = previousYear + 1;
+            missingYear < yearCount.year;
+            missingYear++
+          ) {
+            missingYears.push({ year: missingYear, entriesCount: 0 });
+          }
+        }
+        previousYear = yearCount.year;
+      }
+
+      const currentYear = new Date().getUTCFullYear();
+      if (previousYear !== undefined && previousYear < currentYear) {
+        for (
+          let missingYear = previousYear + 1;
+          missingYear <= currentYear;
+          missingYear++
+        ) {
+          missingYears.push({ year: missingYear, entriesCount: 0 });
+        }
+      }
+
+      yearCounts.push(...missingYears);
+      return yearCounts.sort((a, b) => a.year - b.year);
+    },
+
+    getMonthCount(yearOrCount: number | YearCount): MonthCount[] {
+      const year =
+        typeof yearOrCount === "number" ? yearOrCount : yearOrCount.year;
+
+      return monthCounts.filter((monthCount) => monthCount.year === year);
+    },
+  };
+}

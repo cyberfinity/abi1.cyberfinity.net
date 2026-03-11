@@ -48,7 +48,11 @@ const isLastPage = pageCurrentIndex === pageCount - 1;
   }`}
   heading="Gästebuch"
   currentNavLinkIndex={1}
+  pageNavAllLinks={pageCurrentIndex !== 0}
 >
+  <Fragment slot="head-content">
+    {pageCurrentIndex !== 0 && <meta name="robots" content="noindex" />}
+  </Fragment>
   <Fragment slot="sub-heading"
     >Seite {pageCurrentIndex + 1} von {pageCount}</Fragment
   >

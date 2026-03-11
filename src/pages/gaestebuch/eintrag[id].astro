@@ -16,6 +16,7 @@ const entry = await fetchEntry(parseInt(id ?? "-1"));
   title={`Abi1 - Gästebucheintrag von ${entry.name} am ${formatDate(entry.date)}`}
   heading={`Gästebucheintrag von ${entry.name}`}
   currentNavLinkIndex={1}
+  pageNavAllLinks
 >
   <GuestbookComment {...entry} excludePermalink={true} />
 </BaseLayout>

@@ -1,0 +1,40 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getArchiveStats } from "../../../utils/guestbook.js";
+
+const archiveStats = await getArchiveStats();
+---
+
+<BaseLayout
+  title={`Abi1 - Gästebuch Archiv`}
+  heading={`Gästebuch Archiv`}
+  currentNavLinkIndex={1}
+  pageNavAllLinks
+>
+  <p>
+    Hier im Archiv des <a href="/gaestebuch/"
+      ><acronym title="Deutsche Schule London">DSL</acronym> Abi1 Gästebuchs</a
+    > finden Sie alle Einträge die jemals geschrieben wurden! Das sind insgesamt {
+      archiveStats.getTotalEntriesCount()
+    } Einträge - alle schön nach Jahr und dann Monat geordnet.
+  </p>
+
+  <ul id="archive">
+    {
+      archiveStats.getPaddedYearCounts().map((yearCount) =>
+        yearCount.entriesCount === 0 ? (
+          <li>
+            <span>{yearCount.year}</span>
+            (Keine Einträge)
+          </li>
+        ) : (
+          <li>
+            <a href={`./${yearCount.year}/`}>{yearCount.year}</a>
+            {`(${yearCount.entriesCount} `}
+            {yearCount.entriesCount > 1 ? "Einträge)" : "Eintrag)"}
+          </li>
+        ),
+      )
+    }
+  </ul>
+</BaseLayout>
