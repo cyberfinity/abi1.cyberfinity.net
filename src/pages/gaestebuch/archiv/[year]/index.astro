@@ -1,0 +1,106 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import IndexLinks from "../../../../components/IndexLinks/IndexLinks.astro";
+import Pagination from "../../../../components/Pagination/Pagination.astro";
+import { getArchiveStats } from "../../../../utils/guestbook.js";
+import { getGermanMonthName } from "../../../../utils/german-dates.js";
+
+const { year: yearSlug } = Astro.params;
+// TODO: error handling for invalid years
+
+const year = parseInt(yearSlug!);
+
+const archiveStats = await getArchiveStats();
+
+const yearCounts = archiveStats.getYearCounts();
+const currentYearIndex = yearCounts.findIndex(
+  (yearCount) => yearCount.year === year,
+);
+
+const entriesCount = archiveStats.getYearEntriesCount(year);
+---
+
+<BaseLayout
+  title={`Abi1 - Gästebuch Archiv für ${year}`}
+  heading={`Gästebuch Archiv für ${year}`}
+  currentNavLinkIndex={1}
+  pageNavAllLinks
+>
+  <p>
+    In diesem Jahr wurden {
+      entriesCount > 1
+        ? `wurden insgesamt ${entriesCount} Einträge`
+        : "wurde nur ein Eintrag"
+    } ins <a href="/gaestebuch/"
+      ><acronym title="Deutsche Schule London">DSL</acronym> Abi1 Gästebuch</a
+    > geschrieben. Durch die folgenden Links können Sie die Einträge für die einzelnen
+    Monate lesen:
+  </p>
+
+  <IndexLinks
+    items={archiveStats.getPaddedMonthCounts(year).map((monthCount) => ({
+      title: getGermanMonthName(monthCount.month),
+      href: monthCount.entriesCount > 0 ? `./${monthCount.month}/` : undefined,
+      description:
+        monthCount.entriesCount > 0
+          ? `(${monthCount.entriesCount} ${monthCount.entriesCount > 1 ? "Einträge)" : "Eintrag)"}`
+          : "(Keine Einträge)",
+    }))}
+  />
+
+  <p class="clear separator-above">
+    Naheliegende Jahre im <a href="/gaestebuch/"
+      ><acronym title="Deutsche Schule London">DSL</acronym> Abi1 Gästebuch</a
+    > Archiv:
+  </p>
+
+  <Pagination
+    pageCount={yearCounts.length}
+    pageCurrentIndex={currentYearIndex}
+    pageLinkFn={(yearIndex) => ({
+      href: `../${yearCounts[yearIndex]!.year}/`,
+      label: `${yearCounts[yearIndex]!.year}`,
+    })}
+  />
+
+  <div id="secondary">
+    <div class="box">
+      <ul class="navigation levels">
+        <li class="parent">
+          <a href="../" title="Gesamtes Gästebuch Archiv">Archiv</a>
+        </li>
+
+        {
+          currentYearIndex > 0 && (
+            <li class="prev">
+              <a
+                href={`../${yearCounts[currentYearIndex - 1]!.year}/`}
+                rel="prev"
+              >
+                {yearCounts[currentYearIndex - 1]!.year}
+              </a>
+            </li>
+          )
+        }
+
+        {
+          currentYearIndex < yearCounts.length - 1 && (
+            <li class="next">
+              <a
+                href={`../${yearCounts[currentYearIndex + 1]!.year}/`}
+                rel="next"
+              >
+                {yearCounts[currentYearIndex + 1]!.year}
+              </a>
+            </li>
+          )
+        }
+      </ul>
+      <p class="data">
+        Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+      </p>
+    </div>
+  </div>
+</BaseLayout>

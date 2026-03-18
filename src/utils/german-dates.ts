@@ -1,3 +1,5 @@
+import { clamp } from "./math.js";
+
 const germanMonthNames = [
   "Januar",
   "Februar",
@@ -13,10 +15,19 @@ const germanMonthNames = [
   "Dezember",
 ] as const;
 
+/**
+ *
+ * @param dateOrMonth A Data object, whose montn will be used. Or a month number (1-12)
+ * @returns
+ */
 export function getGermanMonthName(
-  date: Date,
+  dateOrMonth: Date | number,
 ): (typeof germanMonthNames)[number] {
-  return germanMonthNames[date.getUTCMonth()]!;
+  return germanMonthNames[
+    typeof dateOrMonth === "number"
+      ? clamp(dateOrMonth, 1, 12) - 1
+      : dateOrMonth.getUTCMonth()
+  ]!;
 }
 
 const germanWeekdays = [
@@ -30,9 +41,13 @@ const germanWeekdays = [
 ] as const;
 
 export function getGermanWeekdayName(
-  date: Date,
+  dateOrWeekday: Date | number,
 ): (typeof germanWeekdays)[number] {
-  return germanWeekdays[date.getUTCDay()]!;
+  return germanWeekdays[
+    typeof dateOrWeekday === "number"
+      ? clamp(dateOrWeekday, 0, 7)
+      : dateOrWeekday.getUTCDay()
+  ]!;
 }
 
 export function formatDate(date: Date): string {

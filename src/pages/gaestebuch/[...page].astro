@@ -3,10 +3,12 @@ export const prerender = false;
 
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import GuestbookComment from "../../components/GuestbookComment/GuestbookComment.astro";
-import Pagination from "../../components/Pagination/Pagination.astro";
+import Pagination, {
+  type PageLink,
+} from "../../components/Pagination/Pagination.astro";
 import { fetchEntries } from "../../utils/guestbook.js";
 
-const { pageSlug } = Astro.params;
+const { page: pageSlug } = Astro.params;
 // TODO: error handling for invalid slugs
 //const pageNumberRegex = /^seite(\d+)$/;
 
@@ -30,11 +32,11 @@ const { entries, entriesCount } = await fetchEntries(
 
 const pageCount = Math.ceil(entriesCount / entriesPerPage);
 
-function getPageLink(pageIndex: number): string {
+function getPageLink(pageIndex: number): PageLink {
   if (pageIndex === 0) {
-    return "./";
+    return { href: "./", label: `Seite ${pageIndex + 1}` };
   } else {
-    return `./seite${pageIndex + 1}`;
+    return { href: "./", label: `Seite ${pageIndex + 1}` };
   }
 }
 
@@ -126,14 +128,14 @@ const isLastPage = pageCurrentIndex === pageCount - 1;
       {
         !isFirstPage && (
           <li class="prev">
-            <a href={getPageLink(pageCurrentIndex - 1)}>Neuere Einträge</a>
+            <a href={getPageLink(pageCurrentIndex - 1).href}>Neuere Einträge</a>
           </li>
         )
       }
       {
         !isLastPage && (
           <li class="next">
-            <a href={getPageLink(pageCurrentIndex + 1)}>Ältere Einträge</a>
+            <a href={getPageLink(pageCurrentIndex + 1).href}>Ältere Einträge</a>
           </li>
         )
       }

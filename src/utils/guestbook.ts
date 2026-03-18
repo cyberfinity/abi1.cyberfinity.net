@@ -49,6 +49,34 @@ function toGuestbookEntry(dbEntry: DbGuestbookEntry): GuestbookEntry {
   };
 }
 
+const guestbookEntriesSelectClause = sql`(
+  (
+    SELECT
+      icons.filename AS icon_filename,
+      icons.name AS icon_name,
+      entries.id,
+      entries.name,
+      entries.email_sha256,
+      entries.date,
+      entries.entry
+    FROM entries, icons
+    WHERE entries.icon = icons.id
+  )
+  UNION
+  (
+    SELECT
+      NULL as icon_filename,
+      NULL as icon_name,
+      entries.id,
+      entries.name,
+      entries.email_sha256,
+      entries.date,
+      entries.entry
+    FROM entries
+    WHERE icon IS NULL
+  )
+)`;
+
 export async function fetchEntries(
   limit: number,
   offset: number,
@@ -58,7 +86,7 @@ export async function fetchEntries(
 }> {
   const [dbEntriesCount, dbEntries] = await sql.transaction([
     sql`SELECT COUNT(*) FROM entries`,
-    sql`(SELECT icons.filename AS icon_filename, icons.name AS icon_name, entries.id, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries, icons WHERE entries.icon = icons.id) UNION (SELECT NULL as icon_filename, NULL as icon_name, entries.id, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries WHERE icon IS NULL) ORDER BY date DESC OFFSET ${offset} LIMIT ${limit}`,
+    sql`SELECT * FROM ${guestbookEntriesSelectClause} ORDER BY date DESC OFFSET ${offset} LIMIT ${limit}`,
   ]);
 
   return {
@@ -68,14 +96,29 @@ export async function fetchEntries(
   };
 }
 
+export async function fetchEntriesForMonth(
+  year: number,
+  month: number,
+): Promise<GuestbookEntry[]> {
+  const dbEntries = await sql`SELECT * FROM ${guestbookEntriesSelectClause}
+    WHERE EXTRACT(YEAR FROM date) = ${year} AND EXTRACT(MONTH FROM date) = ${month}
+    ORDER BY date ASC`;
+
+  return ((dbEntries ?? []) as DbGuestbookEntry[]).map(toGuestbookEntry);
+}
+
 export async function fetchEntry(id: number): Promise<GuestbookEntry> {
   const dbEntry =
-    (await sql`(SELECT icons.filename AS icon_filename, icons.name AS icon_name, entries.id, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries, icons WHERE entries.icon = icons.id AND entries.id = ${id}) UNION (SELECT NULL as icon_filename, NULL as icon_name, entries.id, entries.name, entries.email_sha256, entries.date, entries.entry FROM entries WHERE icon IS NULL AND entries.id = ${id})`) as DbGuestbookEntry[];
+    (await sql`SELECT * FROM ${guestbookEntriesSelectClause} WHERE id = ${id}`) as DbGuestbookEntry[];
   return toGuestbookEntry(dbEntry[0]!);
 }
 
 interface DbMonthlyCount {
   year: string;
+
+  /**
+   * Month number (1 -12)
+   */
   month: string;
   count: string;
 }
@@ -87,6 +130,9 @@ export interface YearCount {
 
 export interface MonthCount {
   year: number;
+  /**
+   * Month number (1 -12)
+   */
   month: number;
   entriesCount: number;
 }
@@ -100,6 +146,8 @@ export async function getArchiveStats() {
     month: parseInt(dbMonthCount.month),
     entriesCount: parseInt(dbMonthCount.count),
   }));
+
+  let yearCounts: YearCount[] | null = null;
 
   return {
     /**
@@ -115,63 +163,97 @@ export async function getArchiveStats() {
      * Stats for each year that has guestbook entries.
      */
     getYearCounts(): YearCount[] {
-      return monthCounts.reduce((yearCounts, monthCount) => {
-        // Find existing stats for the same year as this
-        // month, if any.
-        let currentYearCount = yearCounts.find(
-          (yearStat) => yearStat.year === monthCount.year,
-        );
+      if (yearCounts === null) {
+        yearCounts = monthCounts.reduce((yearCountsAccumulator, monthCount) => {
+          // Find existing stats for the same year as this
+          // month, if any.
+          let currentYearCount = yearCountsAccumulator.find(
+            (yearStat) => yearStat.year === monthCount.year,
+          );
 
-        if (currentYearCount === undefined) {
-          // None existed, so initialise a new one
-          currentYearCount = { year: monthCount.year, entriesCount: 0 };
-          yearCounts.push(currentYearCount);
-        }
+          if (currentYearCount === undefined) {
+            // None existed, so initialise a new one
+            currentYearCount = { year: monthCount.year, entriesCount: 0 };
+            yearCountsAccumulator.push(currentYearCount);
+          }
 
-        currentYearCount.entriesCount += monthCount.entriesCount;
+          currentYearCount.entriesCount += monthCount.entriesCount;
 
-        return yearCounts;
-      }, [] as YearCount[]);
+          return yearCountsAccumulator;
+        }, [] as YearCount[]);
+      }
+
+      return yearCounts;
     },
 
     getPaddedYearCounts(): YearCount[] {
       const yearCounts = this.getYearCounts();
-      const missingYears: YearCount[] = [];
-      let previousYear: number | undefined;
-      for (const yearCount of yearCounts) {
-        if (previousYear !== undefined && yearCount.year > previousYear + 1) {
-          // we've skipped some years, so need to fill the gap
-          for (
-            let missingYear = previousYear + 1;
-            missingYear < yearCount.year;
-            missingYear++
-          ) {
-            missingYears.push({ year: missingYear, entriesCount: 0 });
-          }
-        }
-        previousYear = yearCount.year;
-      }
-
+      const paddedYearCounts: YearCount[] = [];
       const currentYear = new Date().getUTCFullYear();
-      if (previousYear !== undefined && previousYear < currentYear) {
-        for (
-          let missingYear = previousYear + 1;
-          missingYear <= currentYear;
-          missingYear++
-        ) {
-          missingYears.push({ year: missingYear, entriesCount: 0 });
-        }
+      let startYear = currentYear;
+      if (yearCounts.length > 0) {
+        startYear = yearCounts[0]!.year;
       }
 
-      yearCounts.push(...missingYears);
-      return yearCounts.sort((a, b) => a.year - b.year);
+      let yearCountsIndex = 0;
+      for (let year = startYear; year <= currentYear; year++) {
+        if (yearCounts[yearCountsIndex]?.year === year) {
+          paddedYearCounts.push(yearCounts[yearCountsIndex]!);
+          yearCountsIndex++;
+        } else {
+          paddedYearCounts.push({
+            year,
+            entriesCount: 0,
+          });
+        }
+      }
+      return paddedYearCounts;
     },
 
-    getMonthCount(yearOrCount: number | YearCount): MonthCount[] {
+    getYearEntriesCount(year: number): number {
+      return (
+        this.getYearCounts().find((yearCount) => yearCount.year === year)
+          ?.entriesCount ?? 0
+      );
+    },
+
+    getMonthCounts(yearOrCount: number | YearCount): MonthCount[] {
       const year =
         typeof yearOrCount === "number" ? yearOrCount : yearOrCount.year;
 
       return monthCounts.filter((monthCount) => monthCount.year === year);
+    },
+
+    getPaddedMonthCounts(yearOrCount: number | YearCount): MonthCount[] {
+      const year =
+        typeof yearOrCount === "number" ? yearOrCount : yearOrCount.year;
+      const monthCounts = this.getMonthCounts(yearOrCount);
+      const paddedMonthCounts: MonthCount[] = [];
+
+      let monthCountIndex = 0;
+      for (let month = 1; month <= 12; month++) {
+        if (monthCounts[monthCountIndex]?.month === month) {
+          paddedMonthCounts.push(monthCounts[monthCountIndex]!);
+          monthCountIndex++;
+        } else {
+          paddedMonthCounts.push({
+            year,
+            month,
+            entriesCount: 0,
+          });
+        }
+      }
+
+      return paddedMonthCounts;
+    },
+
+    getMonthEntriesCount(year: number, month: number): number {
+      return (
+        monthCounts.find(
+          (monthCount) =>
+            monthCount.year === year && monthCount.month === month,
+        )?.entriesCount ?? 0
+      );
     },
   };
 }

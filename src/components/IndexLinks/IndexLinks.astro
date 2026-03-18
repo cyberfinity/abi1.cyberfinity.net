@@ -1,0 +1,31 @@
+---
+export interface IndexItem {
+  title: string | number;
+  href?: URL | string | undefined;
+  description?: string;
+}
+
+export interface Props {
+  items: IndexItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul id="archive">
+  {
+    items.map((item) =>
+      item.href === undefined ? (
+        <li>
+          <span>{item.title}</span>
+          {item.description}
+        </li>
+      ) : (
+        <li>
+          <a href={item.href}>{item.title}</a>
+          {item.description}
+        </li>
+      ),
+    )
+  }
+</ul>

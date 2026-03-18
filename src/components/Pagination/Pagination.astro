@@ -1,9 +1,14 @@
 ---
+export interface PageLink {
+  label: string;
+  href: string | URL;
+}
+
 /**
  * Function that returns the URL that corresponds to the
  * given page index (zero based).
  */
-export type PageLinkFn = (pageIndex: number) => string | URL;
+export type PageLinkFn = (pageIndex: number) => PageLink;
 
 export interface Props {
   /**
@@ -99,16 +104,17 @@ function* getPaginationLinks(
 
 <ol class="navigation">
   {
-    getPaginationLinks(pageCount, pageCurrentIndex, maxLinks).map((link) =>
-      link.type === "current" ? (
+    getPaginationLinks(pageCount, pageCurrentIndex, maxLinks).map((link) => {
+      const pageLink = pageLinkFn(link.pageIndex);
+      return link.type === "current" ? (
         <li class="current">
-          <span>Seite {link.pageIndex + 1}</span>
+          <span>{pageLink.label}</span>
         </li>
       ) : (
         <li class={link.type === "previous" ? "prev" : "next"}>
-          <a href={pageLinkFn(link.pageIndex)}>Seite {link.pageIndex + 1}</a>
+          <a href={pageLink.href}>{pageLink.label}</a>
         </li>
-      ),
-    )
+      );
+    })
   }
 </ol>

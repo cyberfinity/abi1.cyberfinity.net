@@ -1,4 +1,7 @@
 ---
+export const prerender = false;
+
+import IndexLinks from "../../../components/IndexLinks/IndexLinks.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getArchiveStats } from "../../../utils/guestbook.js";
 
@@ -19,22 +22,14 @@ const archiveStats = await getArchiveStats();
     } Einträge - alle schön nach Jahr und dann Monat geordnet.
   </p>
 
-  <ul id="archive">
-    {
-      archiveStats.getPaddedYearCounts().map((yearCount) =>
-        yearCount.entriesCount === 0 ? (
-          <li>
-            <span>{yearCount.year}</span>
-            (Keine Einträge)
-          </li>
-        ) : (
-          <li>
-            <a href={`./${yearCount.year}/`}>{yearCount.year}</a>
-            {`(${yearCount.entriesCount} `}
-            {yearCount.entriesCount > 1 ? "Einträge)" : "Eintrag)"}
-          </li>
-        ),
-      )
-    }
-  </ul>
+  <IndexLinks
+    items={archiveStats.getPaddedYearCounts().map((yearCount) => ({
+      title: yearCount.year,
+      href: yearCount.entriesCount > 0 ? `./${yearCount.year}/` : undefined,
+      description:
+        yearCount.entriesCount > 0
+          ? `(${yearCount.entriesCount} ${yearCount.entriesCount > 1 ? "Einträge)" : "Eintrag)"}`
+          : "(Keine Einträge)",
+    }))}
+  />
 </BaseLayout>

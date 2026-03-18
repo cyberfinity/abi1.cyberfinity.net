@@ -1,0 +1,102 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../../../layouts/BaseLayout.astro";
+import GuestbookComment from "../../../../../components/GuestbookComment/GuestbookComment.astro";
+import Pagination from "../../../../../components/Pagination/Pagination.astro";
+import {
+  getArchiveStats,
+  fetchEntriesForMonth,
+} from "../../../../../utils/guestbook.js";
+import { getGermanMonthName } from "../../../../../utils/german-dates.js";
+
+const { year: yearSlug, month: monthSlug } = Astro.params;
+// TODO: error handling for invalid years & months
+
+const year = parseInt(yearSlug!);
+const month = parseInt(monthSlug!);
+
+const archiveStats = await getArchiveStats();
+
+const monthCounts = archiveStats.getMonthCounts(year);
+const currentMonthIndex = monthCounts.findIndex(
+  (monthCount) => monthCount.month === month,
+);
+
+const entriesCount = archiveStats.getMonthEntriesCount(year, month);
+
+const entries = await fetchEntriesForMonth(year, month);
+---
+
+<BaseLayout
+  title={`Abi1 - Gästebuch Archiv für ${getGermanMonthName(month)}, ${year}`}
+  heading={`Gästebuch Archiv für ${getGermanMonthName(month)}, ${year}`}
+  currentNavLinkIndex={1}
+  pageNavAllLinks
+>
+  <p class="separator-below">
+    In diesem Monat {
+      entriesCount > 1
+        ? `wurden insgesamt ${entriesCount} Einträge`
+        : "wurde nur ein Eintrag"
+    } ins <a href="/gaestebuch/"
+      ><acronym title="Deutsche Schule London">DSL</acronym> Abi1 Gästebuch</a
+    > geschrieben.
+  </p>
+
+  {entries.map((entry) => <GuestbookComment {...entry} />)}
+
+  <p class="clear separator-above">
+    Naheliegende Monate im <a href="/gaestebuch/"
+      ><acronym title="Deutsche Schule London">DSL</acronym> Abi1 Gästebuch</a
+    > Archiv:
+  </p>
+
+  <Pagination
+    pageCount={monthCounts.length}
+    pageCurrentIndex={currentMonthIndex}
+    pageLinkFn={(yearIndex) => ({
+      href: `../${monthCounts[yearIndex]!.month}/`,
+      label: `${getGermanMonthName(monthCounts[yearIndex]!.month)}`,
+    })}
+  />
+
+  <div id="secondary">
+    <div class="box">
+      <ul class="navigation levels">
+        <li class="parent">
+          <a href="../" title="Gesamtes Gästebuch Archiv">Archiv</a>
+        </li>
+
+        {
+          currentMonthIndex > 0 && (
+            <li class="prev">
+              <a
+                href={`../${monthCounts[currentMonthIndex - 1]!.month}/`}
+                rel="prev"
+              >
+                {monthCounts[currentMonthIndex - 1]!.month}
+              </a>
+            </li>
+          )
+        }
+
+        {
+          currentMonthIndex < monthCounts.length - 1 && (
+            <li class="next">
+              <a
+                href={`../${monthCounts[currentMonthIndex + 1]!.month}/`}
+                rel="next"
+              >
+                {monthCounts[currentMonthIndex + 1]!.month}
+              </a>
+            </li>
+          )
+        }
+      </ul>
+      <p class="data">
+        Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+      </p>
+    </div>
+  </div>
+</BaseLayout>
