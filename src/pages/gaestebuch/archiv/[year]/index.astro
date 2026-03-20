@@ -4,8 +4,9 @@ export const prerender = false;
 import BaseLayout from "../../../../layouts/BaseLayout.astro";
 import IndexLinks from "../../../../components/IndexLinks/IndexLinks.astro";
 import Pagination from "../../../../components/Pagination/Pagination.astro";
-import { getArchiveStats } from "../../../../utils/guestbook.js";
+import { getArchiveStats, getMonthSlug } from "../../../../utils/guestbook.js";
 import { getGermanMonthName } from "../../../../utils/german-dates.js";
+import ArchiveNav from "../../../../components/ArchiveNav/ArchiveNav.astro";
 
 const { year: yearSlug } = Astro.params;
 // TODO: error handling for invalid years
@@ -41,8 +42,11 @@ const entriesCount = archiveStats.getYearEntriesCount(year);
 
   <IndexLinks
     items={archiveStats.getPaddedMonthCounts(year).map((monthCount) => ({
-      title: getGermanMonthName(monthCount.month),
-      href: monthCount.entriesCount > 0 ? `./${monthCount.month}/` : undefined,
+      text: getGermanMonthName(monthCount.month),
+      href:
+        monthCount.entriesCount > 0
+          ? `./${getMonthSlug(monthCount.month)}/`
+          : undefined,
       description:
         monthCount.entriesCount > 0
           ? `(${monthCount.entriesCount} ${monthCount.entriesCount > 1 ? "Einträge)" : "Eintrag)"}`
@@ -61,43 +65,27 @@ const entriesCount = archiveStats.getYearEntriesCount(year);
     pageCurrentIndex={currentYearIndex}
     pageLinkFn={(yearIndex) => ({
       href: `../${yearCounts[yearIndex]!.year}/`,
-      label: `${yearCounts[yearIndex]!.year}`,
+      text: yearCounts[yearIndex]!.year,
     })}
   />
 
   <div id="secondary">
     <div class="box">
-      <ul class="navigation levels">
-        <li class="parent">
-          <a href="../" title="Gesamtes Gästebuch Archiv">Archiv</a>
-        </li>
-
-        {
-          currentYearIndex > 0 && (
-            <li class="prev">
-              <a
-                href={`../${yearCounts[currentYearIndex - 1]!.year}/`}
-                rel="prev"
-              >
-                {yearCounts[currentYearIndex - 1]!.year}
-              </a>
-            </li>
-          )
-        }
-
-        {
-          currentYearIndex < yearCounts.length - 1 && (
-            <li class="next">
-              <a
-                href={`../${yearCounts[currentYearIndex + 1]!.year}/`}
-                rel="next"
-              >
-                {yearCounts[currentYearIndex + 1]!.year}
-              </a>
-            </li>
-          )
-        }
-      </ul>
+      <ArchiveNav
+        up={{ text: "Gesamtes Gästebuch Archiv", href: "../" }}
+        prev={currentYearIndex > 0
+          ? {
+              text: yearCounts[currentYearIndex - 1]!.year,
+              href: `../${yearCounts[currentYearIndex - 1]!.year}/`,
+            }
+          : undefined}
+        next={currentYearIndex < yearCounts.length - 1
+          ? {
+              text: yearCounts[currentYearIndex + 1]!.year,
+              href: `../${yearCounts[currentYearIndex + 1]!.year}/`,
+            }
+          : undefined}
+      />
       <p class="data">
         Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
       </p>

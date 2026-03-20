@@ -257,3 +257,7 @@ export async function getArchiveStats() {
     },
   };
 }
+
+export function getMonthSlug(month: number): string {
+  return String(month).padStart(2, "0");
+}

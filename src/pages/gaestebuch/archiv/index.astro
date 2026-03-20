@@ -24,7 +24,7 @@ const archiveStats = await getArchiveStats();
 
   <IndexLinks
     items={archiveStats.getPaddedYearCounts().map((yearCount) => ({
-      title: yearCount.year,
+      text: yearCount.year,
       href: yearCount.entriesCount > 0 ? `./${yearCount.year}/` : undefined,
       description:
         yearCount.entriesCount > 0

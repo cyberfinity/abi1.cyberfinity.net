@@ -1,14 +1,11 @@
 ---
-export interface PageLink {
-  label: string;
-  href: string | URL;
-}
+import { type RequiredLink } from "../../types/links.js";
 
 /**
  * Function that returns the URL that corresponds to the
  * given page index (zero based).
  */
-export type PageLinkFn = (pageIndex: number) => PageLink;
+export type PageLinkFn = (pageIndex: number) => RequiredLink;
 
 export interface Props {
   /**
@@ -108,11 +105,11 @@ function* getPaginationLinks(
       const pageLink = pageLinkFn(link.pageIndex);
       return link.type === "current" ? (
         <li class="current">
-          <span>{pageLink.label}</span>
+          <span>{pageLink.text}</span>
         </li>
       ) : (
         <li class={link.type === "previous" ? "prev" : "next"}>
-          <a href={pageLink.href}>{pageLink.label}</a>
+          <a href={pageLink.href}>{pageLink.text}</a>
         </li>
       );
     })

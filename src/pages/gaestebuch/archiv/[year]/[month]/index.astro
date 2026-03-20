@@ -7,8 +7,11 @@ import Pagination from "../../../../../components/Pagination/Pagination.astro";
 import {
   getArchiveStats,
   fetchEntriesForMonth,
+  getMonthSlug,
 } from "../../../../../utils/guestbook.js";
 import { getGermanMonthName } from "../../../../../utils/german-dates.js";
+import ArchiveNav from "../../../../../components/ArchiveNav/ArchiveNav.astro";
+import type { RequiredLink } from "../../../../../types/links";
 
 const { year: yearSlug, month: monthSlug } = Astro.params;
 // TODO: error handling for invalid years & months
@@ -26,6 +29,13 @@ const currentMonthIndex = monthCounts.findIndex(
 const entriesCount = archiveStats.getMonthEntriesCount(year, month);
 
 const entries = await fetchEntriesForMonth(year, month);
+
+function getMonthLink(monthIndex: number): RequiredLink {
+  return {
+    href: `../${getMonthSlug(monthCounts[monthIndex]!.month)}/`,
+    text: getGermanMonthName(monthCounts[monthIndex]!.month),
+  };
+}
 ---
 
 <BaseLayout
@@ -55,45 +65,21 @@ const entries = await fetchEntriesForMonth(year, month);
   <Pagination
     pageCount={monthCounts.length}
     pageCurrentIndex={currentMonthIndex}
-    pageLinkFn={(yearIndex) => ({
-      href: `../${monthCounts[yearIndex]!.month}/`,
-      label: `${getGermanMonthName(monthCounts[yearIndex]!.month)}`,
-    })}
+    pageLinkFn={getMonthLink}
   />
 
   <div id="secondary">
     <div class="box">
-      <ul class="navigation levels">
-        <li class="parent">
-          <a href="../" title="Gesamtes Gästebuch Archiv">Archiv</a>
-        </li>
+      <ArchiveNav
+        up={{ text: `Gästebuch Archiv fuer ${year}`, href: "../" }}
+        prev={currentMonthIndex > 0
+          ? getMonthLink(currentMonthIndex - 1)
+          : undefined}
+        next={currentMonthIndex < monthCounts.length - 1
+          ? getMonthLink(currentMonthIndex + 1)
+          : undefined}
+      />
 
-        {
-          currentMonthIndex > 0 && (
-            <li class="prev">
-              <a
-                href={`../${monthCounts[currentMonthIndex - 1]!.month}/`}
-                rel="prev"
-              >
-                {monthCounts[currentMonthIndex - 1]!.month}
-              </a>
-            </li>
-          )
-        }
-
-        {
-          currentMonthIndex < monthCounts.length - 1 && (
-            <li class="next">
-              <a
-                href={`../${monthCounts[currentMonthIndex + 1]!.month}/`}
-                rel="next"
-              >
-                {monthCounts[currentMonthIndex + 1]!.month}
-              </a>
-            </li>
-          )
-        }
-      </ul>
       <p class="data">
         Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
       </p>

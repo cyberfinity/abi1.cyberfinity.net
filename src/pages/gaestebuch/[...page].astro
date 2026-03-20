@@ -3,10 +3,10 @@ export const prerender = false;
 
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import GuestbookComment from "../../components/GuestbookComment/GuestbookComment.astro";
-import Pagination, {
-  type PageLink,
-} from "../../components/Pagination/Pagination.astro";
+import Pagination from "../../components/Pagination/Pagination.astro";
 import { fetchEntries } from "../../utils/guestbook.js";
+import { type RequiredLink } from "../../types/links.js";
+import ArchiveNav from "../../components/ArchiveNav/ArchiveNav.astro";
 
 const { page: pageSlug } = Astro.params;
 // TODO: error handling for invalid slugs
@@ -32,11 +32,14 @@ const { entries, entriesCount } = await fetchEntries(
 
 const pageCount = Math.ceil(entriesCount / entriesPerPage);
 
-function getPageLink(pageIndex: number): PageLink {
+console.log(`pageCurrentIndex: `, pageCurrentIndex);
+console.log(`pageCount: `, pageCount);
+
+function getPageLink(pageIndex: number): RequiredLink {
   if (pageIndex === 0) {
-    return { href: "./", label: `Seite ${pageIndex + 1}` };
+    return { href: "./", text: `Seite ${pageIndex + 1}` };
   } else {
-    return { href: "./", label: `Seite ${pageIndex + 1}` };
+    return { href: `./seite${pageIndex + 1}`, text: `Seite ${pageIndex + 1}` };
   }
 }
 
@@ -124,22 +127,20 @@ const isLastPage = pageCurrentIndex === pageCount - 1;
   />
 
   <div slot="secondary" class="box">
-    <ul class="navigation">
-      {
-        !isFirstPage && (
-          <li class="prev">
-            <a href={getPageLink(pageCurrentIndex - 1).href}>Neuere Einträge</a>
-          </li>
-        )
-      }
-      {
-        !isLastPage && (
-          <li class="next">
-            <a href={getPageLink(pageCurrentIndex + 1).href}>Ältere Einträge</a>
-          </li>
-        )
-      }
-    </ul>
+    <ArchiveNav
+      prev={!isFirstPage
+        ? {
+            text: "Neuere Einträge",
+            href: getPageLink(pageCurrentIndex - 1).href,
+          }
+        : undefined}
+      next={!isLastPage
+        ? {
+            text: "Ältere Einträge",
+            href: getPageLink(pageCurrentIndex + 1).href,
+          }
+        : undefined}
+    />
     <p class="data">
       Einträge {entriesOffset + 1} bis {entriesOffset + entriesPerPage}
     </p>

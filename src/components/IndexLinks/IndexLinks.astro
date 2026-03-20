@@ -1,12 +1,12 @@
 ---
-export interface IndexItem {
-  title: string | number;
-  href?: URL | string | undefined;
+import { type OptionalLink } from "../../types/links.js";
+
+export interface IndexLink extends OptionalLink {
   description?: string;
 }
 
 export interface Props {
-  items: IndexItem[];
+  items: IndexLink[];
 }
 
 const { items } = Astro.props;
@@ -17,12 +17,12 @@ const { items } = Astro.props;
     items.map((item) =>
       item.href === undefined ? (
         <li>
-          <span>{item.title}</span>
+          <span>{item.text}</span>
           {item.description}
         </li>
       ) : (
         <li>
-          <a href={item.href}>{item.title}</a>
+          <a href={item.href}>{item.text}</a>
           {item.description}
         </li>
       ),
