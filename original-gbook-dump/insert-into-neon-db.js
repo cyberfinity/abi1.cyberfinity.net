@@ -71,17 +71,17 @@ async function updateEntries() {
   );
 
   if (entriesToInsert.length > 0) {
-    console.log(entriesToInsert);
-    // const result = await sql.transaction(
-    //   entriesToInsert.map(
-    //     (
-    //       entry,
-    //     ) => sql`INSERT INTO "entries" (id, date, name, email_sha256, entry, icon)
-    //   OVERRIDING SYSTEM VALUE
-    //   VALUES (${entry.id},${entry.date}, ${entry.name}, ${entry.emailSha256 ?? null}, ${entry.entry}, ${entry.icon ?? null});`,
-    //   ),
-    // );
-    // console.log("Added missing original entries to entries table.");
+    // console.log(entriesToInsert);
+    const result = await sql.transaction(
+      entriesToInsert.map(
+        (
+          entry,
+        ) => sql`INSERT INTO "entries" (id, date, name, email_sha256, entry, icon)
+      OVERRIDING SYSTEM VALUE
+      VALUES (${entry.id},${entry.date}, ${entry.name}, ${entry.emailSha256 ?? null}, ${entry.entry}, ${entry.icon ?? null});`,
+      ),
+    );
+    console.log("Added missing original entries to entries table.");
   } else {
     console.log("entries table already contains all original entries.");
   }
