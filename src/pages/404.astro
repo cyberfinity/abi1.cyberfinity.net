@@ -1,0 +1,15 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+// Need 404 to be SSR, so that other SSR have the option to
+// rewrite to it
+export const prerender = false;
+---
+
+<BaseLayout
+  title={`Abi1 - Seite nicht gefunden`}
+  heading={`Seite nicht gefunden (HTTP 404)`}
+  pageNavAllLinks
+>
+  <p>Hier gibts nichts zu sehen.</p>
+</BaseLayout>

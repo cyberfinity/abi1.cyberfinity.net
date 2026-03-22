@@ -14,12 +14,41 @@ import ArchiveNav from "../../../../../components/ArchiveNav/ArchiveNav.astro";
 import type { RequiredLink } from "../../../../../types/links";
 
 const { year: yearSlug, month: monthSlug } = Astro.params;
-// TODO: error handling for invalid years & months
+let parsedYearSlug: number | undefined;
+let parsedMonthSlug: number | undefined;
+if (
+  yearSlug === undefined ||
+  ((parsedYearSlug = parseInt(yearSlug)) && Number.isNaN(parsedYearSlug))
+) {
+  // yearSlug is not a number
+  // show error page
 
-const year = parseInt(yearSlug!);
-const month = parseInt(monthSlug!);
+  return;
+}
+
+if (
+  monthSlug === undefined ||
+  ((parsedMonthSlug = parseInt(monthSlug)) && Number.isNaN(parsedMonthSlug))
+) {
+  // monthSlug is not a number
+  // show error page
+
+  return;
+}
+
+const year = parsedYearSlug;
+const month = parsedMonthSlug;
+
+if (month < 1 || month > 12) {
+  // "That's unpossible!"
+  // show error page
+
+  return;
+}
 
 const archiveStats = await getArchiveStats();
+
+// TODO: error handling for invalid years & months
 
 const monthCounts = archiveStats.getMonthCounts(year);
 const currentMonthIndex = monthCounts.findIndex(

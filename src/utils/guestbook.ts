@@ -107,10 +107,41 @@ export async function fetchEntriesForMonth(
   return ((dbEntries ?? []) as DbGuestbookEntry[]).map(toGuestbookEntry);
 }
 
-export async function fetchEntry(id: number): Promise<GuestbookEntry> {
-  const dbEntry =
-    (await sql`SELECT * FROM ${guestbookEntriesSelectClause} WHERE id = ${id}`) as DbGuestbookEntry[];
-  return toGuestbookEntry(dbEntry[0]!);
+export async function fetchEntry(id: number): Promise<{
+  prevEntry?: GuestbookEntry;
+  entry?: GuestbookEntry;
+  nextEntry?: GuestbookEntry;
+}> {
+  if (Number.isNaN(id)) {
+    return {};
+  }
+
+  // Select target entry, plus preceding and following ones
+  const dbEntries = (await sql`(
+      SELECT * FROM ${guestbookEntriesSelectClause} WHERE id <= ${id} ORDER BY id DESC LIMIT 2
+    ) UNION (
+      SELECT * FROM ${guestbookEntriesSelectClause} WHERE id > ${id} ORDER BY id ASC LIMIT 1
+    )`) as DbGuestbookEntry[];
+
+  const result: {
+    prevEntry?: GuestbookEntry;
+    entry?: GuestbookEntry;
+    nextEntry?: GuestbookEntry;
+  } = {};
+
+  for (const entryRow of dbEntries) {
+    if (entryRow.id < id) {
+      result.prevEntry = toGuestbookEntry(entryRow);
+      continue;
+    }
+    if (entryRow.id > id) {
+      result.nextEntry = toGuestbookEntry(entryRow);
+      continue;
+    }
+    result.entry = toGuestbookEntry(entryRow);
+  }
+
+  return result;
 }
 
 interface DbMonthlyCount {
@@ -258,6 +289,8 @@ export async function getArchiveStats() {
   };
 }
 
-export function getMonthSlug(month: number): string {
-  return String(month).padStart(2, "0");
+export function getMonthSlug(month: number | Date): string {
+  const monthNumber: number =
+    typeof month === "number" ? month : month.getUTCMonth() + 1;
+  return String(monthNumber).padStart(2, "0");
 }

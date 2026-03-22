@@ -1,6 +1,4 @@
 ---
-export const prerender = false;
-
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import GuestbookComment from "../../components/GuestbookComment/GuestbookComment.astro";
 import Pagination from "../../components/Pagination/Pagination.astro";
@@ -8,9 +6,14 @@ import { fetchEntries } from "../../utils/guestbook.js";
 import { type RequiredLink } from "../../types/links.js";
 import ArchiveNav from "../../components/ArchiveNav/ArchiveNav.astro";
 
+export const prerender = false;
+
 const { page: pageSlug } = Astro.params;
-// TODO: error handling for invalid slugs
-//const pageNumberRegex = /^seite(\d+)$/;
+// Only "" (pageSlug = undefined) and "seite[number]" are valid routes
+const pageSlugRegex = /^seite(\d+)$/;
+if (pageSlug !== undefined && !pageSlugRegex.test(pageSlug)) {
+  return Astro.rewrite("/404");
+}
 
 const pageSlugNumber =
   pageSlug === undefined ? undefined : parseInt(pageSlug.substring(5));
@@ -32,15 +35,17 @@ const { entries, entriesCount } = await fetchEntries(
 
 const pageCount = Math.ceil(entriesCount / entriesPerPage);
 
-console.log(`pageCurrentIndex: `, pageCurrentIndex);
-console.log(`pageCount: `, pageCount);
-
 function getPageLink(pageIndex: number): RequiredLink {
   if (pageIndex === 0) {
     return { href: "./", text: `Seite ${pageIndex + 1}` };
   } else {
     return { href: `./seite${pageIndex + 1}`, text: `Seite ${pageIndex + 1}` };
   }
+}
+
+if (pageCurrentIndex < 0 || pageCurrentIndex >= pageCount) {
+  // invalid pageIndex
+  return Astro.rewrite("/404");
 }
 
 const isFirstPage = pageCurrentIndex === 0;
