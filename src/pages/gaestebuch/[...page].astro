@@ -5,6 +5,7 @@ import Pagination from "../../components/Pagination/Pagination.astro";
 import { fetchEntries } from "../../utils/guestbook.js";
 import { type RequiredLink } from "../../types/links.js";
 import ArchiveNav from "../../components/ArchiveNav/ArchiveNav.astro";
+import GuestbookForm from "../../components/GuestbookForm/GuestbookForm.astro";
 
 export const prerender = false;
 
@@ -67,59 +68,8 @@ const isLastPage = pageCurrentIndex === pageCount - 1;
     >Seite {pageCurrentIndex + 1} von {pageCount}</Fragment
   >
 
-  <!--TODO: Implement posting
   <h2 class="hidden">Neuer Eintrag</h2>
-  <form method="post" action="./" id="gb-entry-form" accept-charset="utf-8">
-    <dl>
-      <dt><label for="gb-name">Name:</label></dt>
-      <dd class="basic"><input type="text" name="gb-name" id="gb-name" /></dd>
-      <dd class="advanced sep-after">
-        <input type="checkbox" name="gb-remember" id="gb-remember" />
-        <label for="gb-remember">Name und Icon fürs nächste Mal merken</label>
-      </dd>
-
-      <dt id="gb-icon-root-label">Icon:</dt>
-      <dd id="gb-icon-root-controls" class="sep-after">
-        <dl>
-          <dt>
-            <input type="radio" name="gb-icon-type" id="gb-icon-type-builtin" />
-            <label for="gb-icon-type-builtin">Abi1 Icon verwenden:</label>
-          </dt>
-          <dd>
-            <label for="gb-icon">Icon:</label>
-            <select name="gb-icon" id="gb-icon"> </select> / <button
-              type="button">Icon Vorschau</button
-            >
-          </dd>
-
-          <dt>
-            <input
-              type="radio"
-              name="gb-icon-type"
-              id="gb-icon-type-gravatar"
-            />
-            <label for="gb-icon-type-gravatar"
-              >Eigenes <a href="http://www.gravatar.com/">Gravatar</a> Icon verwenden:</label
-            >
-          </dt>
-          <dd>
-            <label for="gb-grav-email">Gravatar Email:</label>
-            <input type="text" id="gb-grav-email" name="gb-grav-email" />
-          </dd>
-        </dl>
-      </dd>
-
-      <dt><label for="gb-comment">Beitrag:</label></dt>
-      <dd class="basic">
-        <textarea cols="50" rows="8" name="gb-comment" id="gb-comment"
-        ></textarea>
-      </dd>
-    </dl>
-    <div>
-      <button id="gb-submit-button" name="gb-submit"> Eintragen </button>
-    </div>
-  </form>
-  -->
+  <GuestbookForm />
 
   <h2 class="hidden">Einträge</h2>
   {entries.map((entry) => <GuestbookComment {...entry} />)}
