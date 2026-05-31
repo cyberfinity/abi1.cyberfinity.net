@@ -6,13 +6,17 @@
   "scripts": {
     "start": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "preview": "astro preview"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.6",
+    "@astrojs/netlify": "^6.6.4",
     "@cyberfinity/polymorph-components-astro": "^0.2.1",
-    "astro": "^5.17.1",
+    "@neondatabase/serverless": "^1.0.2",
+    "astro": "^5.17.2",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "dotenv": "^17.3.1"
   }
 }

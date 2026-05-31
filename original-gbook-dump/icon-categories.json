@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "name": "Abicalypse",
+    "description": "Abicalyptische Zeichen und Bilder"
+  },
+  {
+    "id": 2,
+    "name": "Symbole",
+    "description": "Diverse Symbole"
+  },
+  {
+    "id": 4,
+    "name": "Reserved",
+    "description": "Hidden System Icons"
+  },
+  {
+    "id": 5,
+    "name": "Böse Smilies",
+    "description": "Verärgerte Alternativen zu den traditionellen Emoticons"
+  },
+  {
+    "id": 6,
+    "name": "DSL",
+    "description": "Deutsche Schule London"
+  },
+  {
+    "id": 8,
+    "name": "Comic",
+    "description": "Icons im Comicstil"
+  }
+]

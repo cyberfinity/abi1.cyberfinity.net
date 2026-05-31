@@ -1,0 +1,55 @@
+---
+import Icon from "../Icon/Icon.astro";
+import { type GuestbookEntry } from "../../utils/guestbook.js";
+import { formatDate } from "../../utils/german-dates.js";
+
+export interface Props extends GuestbookEntry {
+  excludePermalink?: boolean;
+}
+
+const {
+  permalink,
+  iconCustomUrl,
+  iconFilename,
+  iconAlt,
+  name,
+  date,
+  comment,
+  excludePermalink,
+} = Astro.props;
+
+const paragraphBreakRegex = /[\n\r]{2,}/g;
+const lineBreakRegex = /[\n\r]/g;
+---
+
+<div class="comment box">
+  <p class="title">
+    <Icon customUrl={iconCustomUrl} filename={iconFilename} alt={iconAlt} />
+    <strong>{name}</strong> schrieb am {
+      excludePermalink ? (
+        <time datetime={date.toISOString()}>{formatDate(date)}</time>
+      ) : (
+        <a href={permalink} rel="bookmark">
+          <time datetime={date.toISOString()}>{formatDate(date)}</time>
+        </a>
+      )
+    }
+  </p>
+  {
+    comment
+      .split(paragraphBreakRegex)
+      .map((paragraphText) =>
+        paragraphText.split(lineBreakRegex).map((line, i) =>
+          i === 0 ? (
+            line.trim()
+          ) : (
+            <>
+              <br />
+              {line.trim()}
+            </>
+          ),
+        ),
+      )
+      .map((para) => <p>{para}</p>)
+  }
+</div>

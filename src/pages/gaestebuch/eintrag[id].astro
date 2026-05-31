@@ -1,0 +1,61 @@
+---
+import ArchiveNav from "../../components/ArchiveNav/ArchiveNav.astro";
+import GuestbookComment from "../../components/GuestbookComment/GuestbookComment.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatDate, getGermanMonthName } from "../../utils/german-dates";
+import { fetchEntry, getMonthSlug } from "../../utils/guestbook.js";
+
+// SSR this page
+export const prerender = false;
+
+const { id: idSlug } = Astro.params;
+const id = parseInt(idSlug ?? "");
+// fetchEntry() handles NaN gracefully by returning {}
+const { entry, nextEntry, prevEntry } = await fetchEntry(id);
+
+if (entry) {
+  // Tell CDNs to cache this page for a year
+  Astro.response.headers.set(
+    "CDN-Cache-Control",
+    "public, max-age=31536000, must-revalidate",
+  );
+} else {
+  // Make this an HTTP 404 response
+  Astro.response.status = 404;
+  Astro.response.statusText = "Not found";
+}
+---
+
+<BaseLayout
+  title={entry ? `Abi1 - Gästebucheintrag von ${entry.name} am ${formatDate(entry.date)}` : 'Abi1 - Gästebucheintrag nicht gefunden'}
+  heading={entry ? `Gästebucheintrag von ${entry.name}` : 'Gästebucheintrag nicht gefunden'}
+  currentNavLinkIndex={1}
+  pageNavAllLinks
+>
+  { entry ? (
+  <GuestbookComment {...entry} excludePermalink={true} />
+
+  <div id="secondary">
+    <div class="box">
+      <ArchiveNav
+        up={{
+          text: `${getGermanMonthName(entry.date)} ${entry.date.getUTCFullYear()}`,
+          href: `./archiv/${entry.date.getUTCFullYear()}/${getMonthSlug(entry.date)}/`,
+        }}
+        prev={prevEntry
+          ? {
+              text: "Vorheriger Eintrag",
+              href: prevEntry.permalink,
+            }
+          : undefined}
+        next={nextEntry
+          ? {
+              text: "Nächster Eintrag",
+              href: nextEntry.permalink,
+            }
+          : undefined}
+      />
+    </div>
+  </div>) : <p>Es wurde kein Gästebucheintrag mit der Nummer "{idSlug}" gefunden.</p>
+  <p>In unserem <a href="archiv/">Gästebucharchiv</a> können Sie alle bisherigen Einträge finden.</p>}
+</BaseLayout>

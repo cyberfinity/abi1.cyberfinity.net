@@ -1,0 +1,15 @@
+---
+import { getIconUrl } from "../../utils/icons.js";
+
+export interface Props {
+  customUrl?: URL | string | undefined;
+  filename?: string | undefined;
+  alt?: string | undefined;
+}
+
+const { customUrl, filename, alt } = Astro.props;
+
+const iconSrc: string = customUrl ? customUrl.toString() : getIconUrl(filename);
+---
+
+<img src={iconSrc} alt={alt ?? ""} width={40} height={40} />

@@ -1,0 +1,18 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+interface Props {
+  error: unknown;
+}
+
+// const { error } = Astro.props;
+---
+
+<BaseLayout
+  title={`Abi1 - Interner Fehler`}
+  heading={`Interner Fehler`}
+  pageNavAllLinks
+>
+  <p>Au weia! Im Server ist etwas schiefgelaufen.</p>
+  <p>Bitte versuchen sie es spaeter noch einmal.</p>
+</BaseLayout>

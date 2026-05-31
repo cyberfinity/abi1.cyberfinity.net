@@ -1,0 +1,117 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../../../../layouts/BaseLayout.astro";
+import GuestbookComment from "../../../../../components/GuestbookComment/GuestbookComment.astro";
+import Pagination from "../../../../../components/Pagination/Pagination.astro";
+import {
+  getArchiveStats,
+  fetchEntriesForMonth,
+  getMonthSlug,
+} from "../../../../../utils/guestbook.js";
+import { getGermanMonthName } from "../../../../../utils/german-dates.js";
+import ArchiveNav from "../../../../../components/ArchiveNav/ArchiveNav.astro";
+import type { RequiredLink } from "../../../../../types/links";
+
+const { year: yearSlug, month: monthSlug } = Astro.params;
+let parsedYearSlug: number | undefined;
+let parsedMonthSlug: number | undefined;
+if (
+  yearSlug === undefined ||
+  ((parsedYearSlug = parseInt(yearSlug)) && Number.isNaN(parsedYearSlug))
+) {
+  // yearSlug is not a number
+  // show error page
+
+  return;
+}
+
+if (
+  monthSlug === undefined ||
+  ((parsedMonthSlug = parseInt(monthSlug)) && Number.isNaN(parsedMonthSlug))
+) {
+  // monthSlug is not a number
+  // show error page
+
+  return;
+}
+
+const year = parsedYearSlug;
+const month = parsedMonthSlug;
+
+if (month < 1 || month > 12) {
+  // "That's unpossible!"
+  // show error page
+
+  return;
+}
+
+const archiveStats = await getArchiveStats();
+
+// TODO: error handling for invalid years & months
+
+const monthCounts = archiveStats.getMonthCounts(year);
+const currentMonthIndex = monthCounts.findIndex(
+  (monthCount) => monthCount.month === month,
+);
+
+const entriesCount = archiveStats.getMonthEntriesCount(year, month);
+
+const entries = await fetchEntriesForMonth(year, month);
+
+function getMonthLink(monthIndex: number): RequiredLink {
+  return {
+    href: `../${getMonthSlug(monthCounts[monthIndex]!.month)}/`,
+    text: getGermanMonthName(monthCounts[monthIndex]!.month),
+  };
+}
+---
+
+<BaseLayout
+  title={`Abi1 - Gästebuch Archiv für ${getGermanMonthName(month)}, ${year}`}
+  heading={`Gästebuch Archiv für ${getGermanMonthName(month)}, ${year}`}
+  currentNavLinkIndex={1}
+  pageNavAllLinks
+>
+  <p class="separator-below">
+    In diesem Monat {
+      entriesCount > 1
+        ? `wurden insgesamt ${entriesCount} Einträge`
+        : "wurde nur ein Eintrag"
+    } ins <a href="/gaestebuch/"
+      ><acronym title="Deutsche Schule London">DSL</acronym> Abi1 Gästebuch</a
+    > geschrieben.
+  </p>
+
+  {entries.map((entry) => <GuestbookComment {...entry} />)}
+
+  <p class="clear separator-above">
+    Naheliegende Monate im <a href="/gaestebuch/"
+      ><acronym title="Deutsche Schule London">DSL</acronym> Abi1 Gästebuch</a
+    > Archiv:
+  </p>
+
+  <Pagination
+    pageCount={monthCounts.length}
+    pageCurrentIndex={currentMonthIndex}
+    pageLinkFn={getMonthLink}
+  />
+
+  <div id="secondary">
+    <div class="box">
+      <ArchiveNav
+        up={{ text: `Gästebuch Archiv fuer ${year}`, href: "../" }}
+        prev={currentMonthIndex > 0
+          ? getMonthLink(currentMonthIndex - 1)
+          : undefined}
+        next={currentMonthIndex < monthCounts.length - 1
+          ? getMonthLink(currentMonthIndex + 1)
+          : undefined}
+      />
+
+      <p class="data">
+        Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+      </p>
+    </div>
+  </div>
+</BaseLayout>

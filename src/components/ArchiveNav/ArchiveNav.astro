@@ -1,0 +1,41 @@
+---
+import { type RequiredLink } from "../../types/links.js";
+
+export interface Props {
+  up?: RequiredLink | undefined;
+  next?: RequiredLink | undefined;
+  prev?: RequiredLink | undefined;
+}
+
+const { up, next, prev } = Astro.props;
+---
+
+<ul class:list={["navigation", { levels: up }]}>
+  {
+    up && (
+      <li class="parent">
+        <a href={up.href}>{up.text}</a>
+      </li>
+    )
+  }
+
+  {
+    prev && (
+      <li class="prev">
+        <a href={prev.href} rel="prev">
+          {prev.text}
+        </a>
+      </li>
+    )
+  }
+
+  {
+    next && (
+      <li class="next">
+        <a href={next.href} rel="next">
+          {next.text}
+        </a>
+      </li>
+    )
+  }
+</ul>
