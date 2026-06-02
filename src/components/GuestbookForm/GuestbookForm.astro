@@ -1,9 +1,12 @@
 ---
 import { getIcons, type IconData } from "../../utils/icons.js";
+import { type GuestbookEntrySubmission } from "./guestbookEntrySubmissionSchema.js";
 
-export interface Props {}
+export interface Props {
+  formValues?: Partial<GuestbookEntrySubmission>;
+}
 
-const {} = Astro.props;
+const { formValues } = Astro.props;
 
 const iconsByCategory: { [category: string]: IconData[] } = (await getIcons())
   .sort((a, b) => {
@@ -24,12 +27,25 @@ const iconsByCategory: { [category: string]: IconData[] } = (await getIcons())
   );
 ---
 
-<form method="post" action="./" id="gb-entry-form" accept-charset="utf-8">
+<form method="post" action="/gaestebuch/" accept-charset="utf-8">
   <dl>
     <dt><label for="gb-name">Name:</label></dt>
-    <dd class="basic"><input type="text" name="gb-name" id="gb-name" /></dd>
+    <dd class="basic">
+      <input
+        type="text"
+        name="name"
+        id="gb-name"
+        required
+        value={formValues?.name}
+      />
+    </dd>
     <dd class="advanced sep-after">
-      <input type="checkbox" name="gb-remember" id="gb-remember" />
+      <input
+        type="checkbox"
+        name="remember"
+        id="gb-remember"
+        checked={formValues?.remember}
+      />
       <label for="gb-remember">Name und Icon fürs nächste Mal merken</label>
     </dd>
 
@@ -37,12 +53,24 @@ const iconsByCategory: { [category: string]: IconData[] } = (await getIcons())
     <dd id="gb-icon-root-controls" class="sep-after">
       <dl>
         <dt>
-          <input type="radio" name="gb-icon-type" id="gb-icon-type-builtin" />
+          <input
+            type="radio"
+            required
+            name="iconType"
+            value="builtin"
+            id="gb-icon-type-builtin"
+            checked={formValues === undefined
+              ? true
+              : formValues.iconType !== "gravatar"}
+          />
           <label for="gb-icon-type-builtin">Abi1 Icon verwenden:</label>
         </dt>
         <dd>
           <label for="gb-icon">Icon:</label>
-          <select name="gb-icon" id="gb-icon"
+          <select
+            name="builtinIcon"
+            id="gb-icon"
+            value={formValues?.builtinIcon}
             >{
               Object.keys(iconsByCategory).map((categoryName) => (
                 <optgroup label={categoryName}>
@@ -56,24 +84,38 @@ const iconsByCategory: { [category: string]: IconData[] } = (await getIcons())
         </dd>
 
         <dt>
-          <input type="radio" name="gb-icon-type" id="gb-icon-type-gravatar" />
+          <input
+            type="radio"
+            required
+            name="iconType"
+            value="gravatar"
+            id="gb-icon-type-gravatar"
+            checked={formValues?.iconType === "gravatar"}
+          />
           <label for="gb-icon-type-gravatar"
             >Eigenes <a href="http://www.gravatar.com/">Gravatar</a> Icon verwenden:</label
           >
         </dt>
         <dd>
           <label for="gb-grav-email">Gravatar Email:</label>
-          <input type="text" id="gb-grav-email" name="gb-grav-email" />
+          <input
+            type="email"
+            id="gb-grav-email"
+            name="gravatarEmail"
+            value={formValues?.gravatarEmail}
+          />
         </dd>
       </dl>
     </dd>
 
     <dt><label for="gb-comment">Beitrag:</label></dt>
     <dd class="basic">
-      <textarea cols="50" rows="8" name="gb-comment" id="gb-comment"></textarea>
+      <textarea rows="8" name="comment" id="gb-comment" required
+        >{formValues?.comment}</textarea
+      >
     </dd>
   </dl>
   <div>
-    <button id="gb-submit-button" name="gb-submit"> Eintragen </button>
+    <button>Eintragen</button>
   </div>
 </form>

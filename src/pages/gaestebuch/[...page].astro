@@ -2,14 +2,57 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import GuestbookComment from "../../components/GuestbookComment/GuestbookComment.astro";
 import Pagination from "../../components/Pagination/Pagination.astro";
-import { fetchEntries } from "../../utils/guestbook.js";
+import { fetchEntries } from "../../utils/guestbook-display.js";
 import { type RequiredLink } from "../../types/links.js";
 import ArchiveNav from "../../components/ArchiveNav/ArchiveNav.astro";
 import GuestbookForm from "../../components/GuestbookForm/GuestbookForm.astro";
+import { parseGuestbookEntryFormData } from "../../components/GuestbookForm/guestbookEntrySubmissionSchema.js";
+import { addEntry } from "../../utils/guestbook-entry.js";
 
 export const prerender = false;
-
 const { page: pageSlug } = Astro.params;
+
+// ==== Handle new submissions ====
+
+if (Astro.request.method === "POST") {
+  try {
+    // Only /gaestebuch/ is a valid endpoint for POSTing
+    // new guestbook entries
+    if (pageSlug !== undefined) {
+      return Astro.rewrite("/404");
+    }
+
+    // validate form data
+    const data = await Astro.request.formData();
+    const guestbookEntrySubmission = parseGuestbookEntryFormData(data);
+
+    // console.log("Form data parsed OK", guestbookEntrySubmission);
+
+    // Ok --> check if spam
+    //    Not spam --> insert into DB, redirect back to guestbook
+
+    //    Maybe spam --> insert into moderation queue, redirect
+    //                   back to guestbook (but display message
+    //                   that comment is awaiting moderation)
+    //    Spam --> redirect back to guestbook (but display message
+    //             saying comment was rejected)
+
+    await addEntry(guestbookEntrySubmission);
+
+    // Redirect back to guestbook page to prevent form resubmission
+    // if user reloads page
+    return Astro.redirect(Astro.url.pathname, 303);
+  } catch (error) {
+    if (error instanceof Error) {
+      // Invalid --> display page with error messages in form
+      console.error(error.message);
+      throw error;
+    }
+  }
+}
+
+// ==== Display of guestbook pages... ====
+
 // Only "" (pageSlug = undefined) and "seite[number]" are valid routes
 const pageSlugRegex = /^seite(\d+)$/;
 if (pageSlug !== undefined && !pageSlugRegex.test(pageSlug)) {
@@ -69,7 +112,7 @@ const isLastPage = pageCurrentIndex === pageCount - 1;
   >
 
   <h2 class="hidden">Neuer Eintrag</h2>
-  <GuestbookForm />
+  {isFirstPage ? <GuestbookForm /> : null}
 
   <h2 class="hidden">Einträge</h2>
   {entries.map((entry) => <GuestbookComment {...entry} />)}

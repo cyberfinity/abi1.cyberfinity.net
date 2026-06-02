@@ -1,5 +1,5 @@
 import { z } from "astro/zod";
-import { reference, type ReferenceDataEntry } from "astro:content";
+import { reference } from "astro:content";
 import { type Loader } from "astro/loaders";
 import { sql } from "../lib/neon.js";
 import { type IconRow } from "../types/guestbook-db-schema.js";

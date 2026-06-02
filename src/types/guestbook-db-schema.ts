@@ -11,11 +11,14 @@ export interface IconRow {
   category: number;
 }
 
-export interface EntryRow {
-  id: number;
-  date: string;
+export interface NewEntryRow {
   name: string;
   icon: number | null;
   entry: string;
   email_sha256: string | null;
+}
+
+export interface EntryRow extends NewEntryRow {
+  id: number;
+  date: string;
 }

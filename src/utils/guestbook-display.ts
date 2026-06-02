@@ -13,8 +13,8 @@ export interface GuestbookEntry {
 }
 
 export interface DbGuestbookEntry extends EntryRow {
-  icon_filename: IconRow["filename"];
-  icon_name: IconRow["name"];
+  icon_filename: IconRow["filename"] | null;
+  icon_name: IconRow["name"] | null;
 }
 
 export function getGuestbookEntryPath(id: number): string {

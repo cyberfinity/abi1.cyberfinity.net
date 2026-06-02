@@ -7,12 +7,14 @@ import { iconsCollectionName, type Icon } from "../content/icons";
 import type { iconCategoriesCollectionName } from "../content/iconCollections";
 
 export const fallbackIconFilename = "abi1-old.png";
+export const fallbackIconId = 7;
 
 export function getIconUrl(filename: string | undefined): string {
   return `/icons/${filename ?? fallbackIconFilename}`;
 }
 
 export interface IconData extends Omit<Icon, "category"> {
+  id: number;
   categoryName: string;
   url: string;
 }
@@ -30,6 +32,7 @@ export async function getIcons(includeReserved = false): Promise<IconData[]> {
         >,
       );
       return {
+        id: parseInt(iconEntry.id),
         filename,
         ...restIconData,
         url: getIconUrl(filename),
@@ -40,5 +43,13 @@ export async function getIcons(includeReserved = false): Promise<IconData[]> {
 
   return iconsData.filter(
     (iconData) => includeReserved || iconData.categoryName !== "Reserved",
+  );
+}
+
+export async function getIconId(filename: string): Promise<number> {
+  const allIcons = await getIcons(true);
+  return (
+    allIcons.find((iconData) => iconData.filename === filename)?.id ??
+    fallbackIconId
   );
 }

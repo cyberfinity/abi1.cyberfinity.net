@@ -4,7 +4,10 @@ export const prerender = false;
 import BaseLayout from "../../../../layouts/BaseLayout.astro";
 import IndexLinks from "../../../../components/IndexLinks/IndexLinks.astro";
 import Pagination from "../../../../components/Pagination/Pagination.astro";
-import { getArchiveStats, getMonthSlug } from "../../../../utils/guestbook.js";
+import {
+  getArchiveStats,
+  getMonthSlug,
+} from "../../../../utils/guestbook-display.js";
 import { getGermanMonthName } from "../../../../utils/german-dates.js";
 import ArchiveNav from "../../../../components/ArchiveNav/ArchiveNav.astro";
 

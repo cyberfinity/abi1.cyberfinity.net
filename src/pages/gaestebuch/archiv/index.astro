@@ -6,9 +6,12 @@ import IndexLinks, {
 } from "../../../components/IndexLinks/IndexLinks.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getGermanMonthName } from "../../../utils/german-dates";
-import type { MonthCount } from "../../../utils/guestbook.js";
-import { getMonthSlug } from "../../../utils/guestbook.js";
-import { getArchiveStats, type YearCount } from "../../../utils/guestbook.js";
+import type { MonthCount } from "../../../utils/guestbook-display.js";
+import { getMonthSlug } from "../../../utils/guestbook-display.js";
+import {
+  getArchiveStats,
+  type YearCount,
+} from "../../../utils/guestbook-display.js";
 
 const archiveStats = await getArchiveStats();
 
