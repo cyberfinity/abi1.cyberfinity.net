@@ -6,13 +6,48 @@ import { fetchEntries } from "../../utils/guestbook-display.js";
 import { type RequiredLink } from "../../types/links.js";
 import ArchiveNav from "../../components/ArchiveNav/ArchiveNav.astro";
 import GuestbookForm from "../../components/GuestbookForm/GuestbookForm.astro";
-import { parseGuestbookEntryFormData } from "../../components/GuestbookForm/guestbookEntrySubmissionSchema.js";
+import {
+  parseGuestbookEntryFormData,
+  type GuestbookEntrySubmission,
+} from "../../components/GuestbookForm/guestbookEntrySubmissionSchema.js";
 import { addEntry } from "../../utils/guestbook-entry.js";
 
 export const prerender = false;
 const { page: pageSlug } = Astro.params;
 
 // ==== Handle new submissions ====
+const cookieName = "guestbook-defaults";
+type GuestbookEntryDefaults = Pick<
+  GuestbookEntrySubmission,
+  "name" | "remember" | "iconType" | "builtinIcon" | "gravatarEmail"
+>;
+
+function encodeGuestbookDefaults({
+  name,
+  remember,
+  iconType,
+  builtinIcon,
+  gravatarEmail,
+}: GuestbookEntrySubmission): string {
+  const defaults: GuestbookEntryDefaults = {
+    name: remember ? name : "",
+    remember,
+    iconType: remember ? iconType : "builtin",
+    builtinIcon: remember ? builtinIcon : undefined,
+    gravatarEmail: remember ? gravatarEmail : undefined,
+  };
+
+  return JSON.stringify(defaults);
+}
+
+function decodeGuestbookDefaults(
+  cookieValue?: string,
+): GuestbookEntryDefaults | undefined {
+  if (cookieValue) {
+    return JSON.parse(cookieValue) as GuestbookEntryDefaults;
+  }
+  return undefined;
+}
 
 if (Astro.request.method === "POST") {
   try {
@@ -26,7 +61,14 @@ if (Astro.request.method === "POST") {
     const data = await Astro.request.formData();
     const guestbookEntrySubmission = parseGuestbookEntryFormData(data);
 
-    // console.log("Form data parsed OK", guestbookEntrySubmission);
+    // Save preferences to cookie
+    Astro.cookies.set(
+      cookieName,
+      encodeGuestbookDefaults(guestbookEntrySubmission),
+      {
+        maxAge: 60 * 60 * 24 * 100, // 100 days
+      },
+    );
 
     // Ok --> check if spam
     //    Not spam --> insert into DB, redirect back to guestbook
@@ -58,6 +100,11 @@ const pageSlugRegex = /^seite(\d+)$/;
 if (pageSlug !== undefined && !pageSlugRegex.test(pageSlug)) {
   return Astro.rewrite("/404");
 }
+
+const guestbookFormDefaults: GuestbookEntryDefaults | undefined =
+  Astro.cookies.has(cookieName)
+    ? decodeGuestbookDefaults(Astro.cookies.get(cookieName)?.value)
+    : { name: "", remember: true, iconType: "builtin" };
 
 const pageSlugNumber =
   pageSlug === undefined ? undefined : parseInt(pageSlug.substring(5));
@@ -112,7 +159,7 @@ const isLastPage = pageCurrentIndex === pageCount - 1;
   >
 
   <h2 class="hidden">Neuer Eintrag</h2>
-  {isFirstPage ? <GuestbookForm /> : null}
+  {isFirstPage ? <GuestbookForm formValues={guestbookFormDefaults} /> : null}
 
   <h2 class="hidden">Einträge</h2>
   {entries.map((entry) => <GuestbookComment {...entry} />)}

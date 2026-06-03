@@ -3,8 +3,10 @@ import { getIconsByCategory } from "../../utils/icons.js";
 import AvatarPicker from "../AvatarPicker/AvatarPicker.astro";
 import { type GuestbookEntrySubmission } from "./guestbookEntrySubmissionSchema.js";
 
+type PartialWithUndefined<T> = { [P in keyof T]?: T[P] | undefined };
+
 export interface Props {
-  formValues?: Partial<GuestbookEntrySubmission>;
+  formValues?: PartialWithUndefined<GuestbookEntrySubmission> | undefined;
 }
 
 const { formValues } = Astro.props;
@@ -50,7 +52,7 @@ const iconsByCategory = await getIconsByCategory();
         type="checkbox"
         name="remember"
         id="gb-remember"
-        checked={formValues?.remember ?? true}
+        checked={formValues?.remember}
       />
       <label for="gb-remember">Name und Icon fürs nächste Mal merken</label>
     </dd>
