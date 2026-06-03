@@ -1,0 +1,37 @@
+---
+import { getIconsByCategory } from "../../utils/icons.js";
+
+export interface Props {
+  method?: 'post' | 'get' | 'dialog';
+}
+
+const { method = 'dialog' } = Astro.props;
+
+const iconsByCategory = await getIconsByCategory();
+---
+<p>
+  Einfach das erwünschte Icon anklicken, um damit einen Gästebuch Eintrag zu
+  machen...
+</p>
+<form id="icon-form" method={method}>
+  {
+    Object.keys(iconsByCategory).map((categoryName) => (
+      <>
+        <h2>{categoryName} Icons</h2>
+        {iconsByCategory[categoryName]!.map((iconData, i) => (
+          <button value={iconData.filename}>
+            
+              <img
+              width={40}
+              height={40}
+              alt=""
+              src={iconData.url}
+              />
+            
+            <span>{iconData.name}</span>
+          </button>
+        ))}
+      </>
+    ))
+  }
+</form>

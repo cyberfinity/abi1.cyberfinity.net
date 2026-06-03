@@ -46,6 +46,26 @@ export async function getIcons(includeReserved = false): Promise<IconData[]> {
   );
 }
 
+export async function getIconsByCategory(includeReserved = false): { [category: string]: IconData[] } {
+  return (await getIcons())
+  .sort((a, b) => {
+    if (a.categoryName !== b.categoryName) {
+      return a.categoryName.localeCompare(b.categoryName);
+    }
+    return a.name.localeCompare(b.name);
+  })
+  .reduce(
+    (iconsByCategoryAccumulator, iconData) => {
+      const categoryIcons =
+        iconsByCategoryAccumulator[iconData.categoryName] ?? [];
+      categoryIcons.push(iconData);
+      iconsByCategoryAccumulator[iconData.categoryName] = categoryIcons;
+      return iconsByCategoryAccumulator;
+    },
+    {} as { [category: string]: IconData[] },
+  );
+}
+
 export async function getIconId(filename: string): Promise<number> {
   const allIcons = await getIcons(true);
   return (
