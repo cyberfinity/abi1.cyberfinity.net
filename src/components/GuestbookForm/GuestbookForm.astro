@@ -1,0 +1,144 @@
+---
+import { getIconsByCategory } from "../../utils/icons.js";
+import AvatarPicker from "../AvatarPicker/AvatarPicker.astro";
+import { type GuestbookEntrySubmission } from "./guestbookEntrySubmissionSchema.js";
+
+type PartialWithUndefined<T> = { [P in keyof T]?: T[P] | undefined };
+
+export interface Props {
+  formValues?: PartialWithUndefined<GuestbookEntrySubmission> | undefined;
+}
+
+const { formValues } = Astro.props;
+
+const iconsByCategory = await getIconsByCategory();
+---
+
+<script>
+  const iconPickerDialog = document.getElementById(
+    "icon-picker-dialog",
+  ) as HTMLDialogElement;
+
+  const iconSelect = document.getElementById("gb-icon") as HTMLSelectElement;
+
+  function setSelectedIcon(filename: string) {
+    if (iconSelect) {
+      iconSelect.value = filename;
+    }
+  }
+
+  iconPickerDialog.addEventListener("close", () => {
+    const closeValue = iconPickerDialog.returnValue;
+    if (closeValue.length > 0) {
+      setSelectedIcon(closeValue);
+    }
+  });
+</script>
+
+<form method="post" action="/gaestebuch/" accept-charset="utf-8">
+  <dl>
+    <dt><label for="gb-name">Name:</label></dt>
+    <dd class="basic">
+      <input
+        type="text"
+        name="name"
+        id="gb-name"
+        required
+        value={formValues?.name}
+      />
+    </dd>
+    <dd class="advanced sep-after">
+      <input
+        type="checkbox"
+        name="remember"
+        id="gb-remember"
+        checked={formValues?.remember}
+      />
+      <label for="gb-remember">Name und Icon fürs nächste Mal merken</label>
+    </dd>
+
+    <dt id="gb-icon-root-label">Icon:</dt>
+    <dd id="gb-icon-root-controls" class="sep-after">
+      <dl>
+        <dt>
+          <input
+            type="radio"
+            required
+            name="iconType"
+            value="builtin"
+            id="gb-icon-type-builtin"
+            checked={formValues === undefined
+              ? true
+              : formValues.iconType !== "gravatar"}
+          />
+          <label for="gb-icon-type-builtin">Abi1 Icon verwenden:</label>
+        </dt>
+        <dd>
+          <label for="gb-icon">Icon:</label>
+          <select
+            name="builtinIcon"
+            id="gb-icon"
+            value={formValues?.builtinIcon}
+            >{
+              Object.keys(iconsByCategory).map((categoryName) => (
+                <optgroup label={categoryName}>
+                  {iconsByCategory[categoryName]!.map((iconData) => (
+                    <option value={iconData.filename}>{iconData.name}</option>
+                  ))}
+                </optgroup>
+              ))
+            }</select
+          > / <button
+            type="button"
+            command="show-modal"
+            commandfor="icon-picker-dialog">Icon Vorschau</button
+          >
+        </dd>
+
+        <dt>
+          <input
+            type="radio"
+            required
+            name="iconType"
+            value="gravatar"
+            id="gb-icon-type-gravatar"
+            checked={formValues?.iconType === "gravatar"}
+          />
+          <label for="gb-icon-type-gravatar"
+            >Eigenes <a href="http://www.gravatar.com/">Gravatar</a> Icon verwenden:</label
+          >
+        </dt>
+        <dd>
+          <label for="gb-grav-email">Gravatar Email:</label>
+          <input
+            type="email"
+            id="gb-grav-email"
+            name="gravatarEmail"
+            value={formValues?.gravatarEmail}
+          />
+        </dd>
+      </dl>
+    </dd>
+
+    <dt><label for="gb-comment">Beitrag:</label></dt>
+    <dd class="basic">
+      <textarea rows="8" name="comment" id="gb-comment" required
+        >{formValues?.comment}</textarea
+      >
+    </dd>
+  </dl>
+  <div>
+    <button>Eintragen</button>
+  </div>
+</form>
+
+<dialog id="icon-picker-dialog">
+  <header>
+    <button commandfor="icon-picker-dialog" command="close"
+      ><span>Schließen</span></button
+    >
+  </header>
+  <div>
+    <AvatarPicker />
+  </div>
+</dialog>

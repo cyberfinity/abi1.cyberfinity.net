@@ -8,7 +8,7 @@ import {
   getArchiveStats,
   fetchEntriesForMonth,
   getMonthSlug,
-} from "../../../../../utils/guestbook.js";
+} from "../../../../../utils/guestbook-display.js";
 import { getGermanMonthName } from "../../../../../utils/german-dates.js";
 import ArchiveNav from "../../../../../components/ArchiveNav/ArchiveNav.astro";
 import type { RequiredLink } from "../../../../../types/links";
@@ -64,6 +64,29 @@ function getMonthLink(monthIndex: number): RequiredLink {
     href: `../${getMonthSlug(monthCounts[monthIndex]!.month)}/`,
     text: getGermanMonthName(monthCounts[monthIndex]!.month),
   };
+}
+
+const now = new Date();
+
+if (year < now.getUTCFullYear() || month < now.getUTCMonth() + 1) {
+  // Archive for a past year or past month of current
+  // year, so it won't change:
+
+  // Tell CDNs to cache this page for a year
+  Astro.response.headers.set(
+    "CDN-Cache-Control",
+    "public, max-age=31536000, must-revalidate",
+  );
+} else {
+  // Current month, so same caching as main archive page:
+
+  // Tell CDNs to cache the archive page for 1 day
+  // BUT to continue serving cached copy, but
+  // revalidating in background, for another week
+  Astro.response.headers.set(
+    "CDN-Cache-Control",
+    "public, max-age=86400, stale-while-revalidate=604800",
+  );
 }
 ---
 

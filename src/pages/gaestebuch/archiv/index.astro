@@ -1,11 +1,65 @@
 ---
 export const prerender = false;
 
-import IndexLinks from "../../../components/IndexLinks/IndexLinks.astro";
+import IndexLinks, {
+  type IndexLink,
+} from "../../../components/IndexLinks/IndexLinks.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import { getArchiveStats } from "../../../utils/guestbook.js";
+import { getGermanMonthName } from "../../../utils/german-dates";
+import type { MonthCount } from "../../../utils/guestbook-display.js";
+import { getMonthSlug } from "../../../utils/guestbook-display.js";
+import {
+  getArchiveStats,
+  type YearCount,
+} from "../../../utils/guestbook-display.js";
 
 const archiveStats = await getArchiveStats();
+
+function yearCountToLink(yearCount: YearCount): IndexLink {
+  return {
+    text: yearCount.year,
+    href: yearCount.entriesCount > 0 ? `./${yearCount.year}/` : undefined,
+    description:
+      yearCount.entriesCount > 0
+        ? `(${yearCount.entriesCount} ${yearCount.entriesCount > 1 ? "Einträge)" : "Eintrag)"}`
+        : "(Keine Einträge)",
+  };
+}
+
+function monthCountToLink(monthCount: MonthCount): IndexLink {
+  return {
+    text: `${getGermanMonthName(monthCount.month)} ${monthCount.year}`,
+    href: `./${monthCount.year}/${getMonthSlug(monthCount.month)}/`,
+    description:
+      monthCount.entriesCount > 0
+        ? `(${monthCount.entriesCount} ${monthCount.entriesCount > 1 ? "Einträge)" : "Eintrag)"}`
+        : "(Keine Einträge)",
+  };
+}
+
+const sortedYearCounts = archiveStats
+  .getYearCounts()
+  .toSorted((a, b) => a.entriesCount - b.entriesCount);
+const linkToYearWithMostEntries = yearCountToLink(
+  sortedYearCounts[sortedYearCounts.length - 1]!,
+);
+const linkToYearWithLeastEntries = yearCountToLink(sortedYearCounts[0]!);
+
+const sortedMonthCounts = archiveStats
+  .getAllMonthCounts()
+  .toSorted((a, b) => a.entriesCount - b.entriesCount);
+const linkToMonthWithMostEntries = monthCountToLink(
+  sortedMonthCounts[sortedMonthCounts.length - 1]!,
+);
+const linkToMonthWithLeastEntries = monthCountToLink(sortedMonthCounts[0]!);
+
+// Tell CDNs to cache the archive page for 1 day
+// BUT to continue serving cached copy, but
+// revalidating in background, for another week
+Astro.response.headers.set(
+  "CDN-Cache-Control",
+  "public, max-age=86400, stale-while-revalidate=604800",
+);
 ---
 
 <BaseLayout
@@ -22,14 +76,55 @@ const archiveStats = await getArchiveStats();
     } Einträge - alle schön nach Jahr und dann Monat geordnet.
   </p>
 
-  <IndexLinks
-    items={archiveStats.getPaddedYearCounts().map((yearCount) => ({
-      text: yearCount.year,
-      href: yearCount.entriesCount > 0 ? `./${yearCount.year}/` : undefined,
-      description:
-        yearCount.entriesCount > 0
-          ? `(${yearCount.entriesCount} ${yearCount.entriesCount > 1 ? "Einträge)" : "Eintrag)"}`
-          : "(Keine Einträge)",
-    }))}
-  />
+  <IndexLinks items={archiveStats.getPaddedYearCounts().map(yearCountToLink)} />
+
+  <div id="secondary">
+    <div class="box gap-before">
+      <h2 class="top">Statistiken</h2>
+      <dl class="stats">
+        <dt>Jahr mit den meisten Einträgen:</dt>
+        <dd>
+          <a href={linkToYearWithMostEntries.href}
+            >{linkToYearWithMostEntries.text}</a
+          >
+          {linkToYearWithMostEntries.description}
+        </dd>
+
+        <dt>Jahr mit den wenigsten Einträgen:</dt>
+        <dd>
+          <a href={linkToYearWithLeastEntries.href}
+            >{linkToYearWithLeastEntries.text}</a
+          >
+          {linkToYearWithLeastEntries.description}
+        </dd>
+
+        <dt>Monat mit den meisten Einträgen:</dt>
+        <dd>
+          <a href={linkToMonthWithMostEntries.href}
+            >{linkToMonthWithMostEntries.text}</a
+          >
+          {linkToMonthWithMostEntries.description}
+        </dd>
+
+        <dt>Monat mit den wenigsten Einträgen:</dt>
+        <dd>
+          <a href={linkToMonthWithLeastEntries.href}
+            >{linkToMonthWithLeastEntries.text}</a
+          >
+          {linkToMonthWithLeastEntries.description}
+        </dd>
+
+        <dt>Durchschnittliche Einträge pro Woche:</dt>
+        <dd>
+          {
+            (
+              archiveStats.getTotalEntriesCount() /
+              ((Date.now() - archiveStats.getFirstEntryDate().getTime()) /
+                (1000 * 60 * 60 * 24 * 7))
+            ).toFixed(2)
+          }
+        </dd>
+      </dl>
+    </div>
+  </div>
 </BaseLayout>

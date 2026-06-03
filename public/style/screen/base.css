@@ -6,6 +6,10 @@ body {
 	font-size: 9pt;
 	font-family: "Verdana", sans-serif;
 	color: #4c0c67;
+
+	/* new for 2026 */
+	-webkit-text-size-adjust: none;
+	text-size-adjust: none;
 }
 
 .monospace {
@@ -90,20 +94,38 @@ h2 {
 	font-size: 0.8em;
 }
 
-
 /* icon selector */
-#icon-form div {
+#icon-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+#icon-form > :first-child {
+  margin-top: 0;
+}
+
+#icon-form > h2 {
+  width: 100%;
+  flex-grow: 1;
+  margin-bottom: 0;
+}
+
+#icon-form button {
+  appearance: none;
+  border: none;
+  flex-shrink: 0;
 	line-height: 1em;
 	font-size: 0.8em;
 	width: 100px;
-	margin: 5px;
+	/* margin: 5px; */
 	padding: 0;
-	float: left;
+	/* float: left; */
 	background: #f0e16c url('icon-sel-top.png') no-repeat top left;
 	text-align: center;
 }
 
-#icon-form input {
+#icon-form button img {
 	width: 40px;
 	height: 40px;
 	padding: 2px;
@@ -111,17 +133,88 @@ h2 {
 	border: 1px solid #115691;
 }
 
-#icon-form input:hover {
+
+#icon-form button:hover img {
 	background-color: #fff;
 }
 
-#icon-form label {
+#icon-form span {
 	display: block;
 	border-top: 2px solid #e9309a;
 	padding: 5px;
 	height: 2em;
 	background: #3f3f3f url('icon-sel-bottom.png') no-repeat bottom left;
 	color: #bd82d0;
+}
+
+#icon-picker-dialog {
+  box-sizing: border-box;
+  border: 2px solid #3f3f3f;
+  background-color: #d0d0d0;
+  box-shadow: 0px 10px 20px rgba(0,0,0,0.3);
+  border-radius: 10px;
+  margin: auto;
+  overflow: auto;
+  width: calc(100% - 20px);
+  max-width: 455px;
+  height: calc(100% - 20px);
+  min-height: 200px;
+  max-height: 400px;
+  padding: 0;
+}
+
+#icon-picker-dialog > header,
+#icon-picker-dialog > div {
+  padding: 10px;
+}
+
+#icon-picker-dialog > header {
+  position: sticky;
+  top: 0;
+  background-color: #3f3f3f;
+  display: flex;
+  justify-content: flex-end;
+}
+
+#icon-picker-dialog > header button {
+  appearance: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  background: none;
+  border-radius: 50%;
+  color: #e9309a;
+  border: 2px solid #e9309a;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#icon-picker-dialog > header button:hover {
+  background-color: #e9309a;
+  color: #3f3f3f;
+}
+
+#icon-picker-dialog > header button:active {
+  background-color: #67da3b;
+  border-color: #67da3b;
+  color: #3f3f3f;
+}
+
+#icon-picker-dialog > header button::before {
+  content: '×';
+  font-size: 1rem;
+  font-weight: bold;
+  margin-top: -0.15em;
+}
+
+#icon-picker-dialog > header button span {
+  display: none;
+}
+
+
+
+dialog::backdrop {
+  background-color: rgba(0,0,0,0.4);
 }
 
 .clear {

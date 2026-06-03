@@ -87,6 +87,17 @@ async function updateEntries() {
   }
 }
 
+async function updateSequences() {
+  for (const table of ["entries", "icons", "icon-categories"]) {
+    const [{ max }] =
+      await sql`SELECT MAX(id) AS max FROM "${sql.unsafe(table)}"`;
+    console.log(`Max ID of ${table} table is: ${max}...`);
+    await sql`SELECT setval('${sql.unsafe(table)}_id_seq', ${max}, true);`;
+    console.log(`Sequence updated.`);
+  }
+}
+
 await updateIconCategories();
 await updateIcons();
 await updateEntries();
+await updateSequences();

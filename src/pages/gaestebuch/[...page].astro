@@ -2,18 +2,109 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import GuestbookComment from "../../components/GuestbookComment/GuestbookComment.astro";
 import Pagination from "../../components/Pagination/Pagination.astro";
-import { fetchEntries } from "../../utils/guestbook.js";
+import { fetchEntries } from "../../utils/guestbook-display.js";
 import { type RequiredLink } from "../../types/links.js";
 import ArchiveNav from "../../components/ArchiveNav/ArchiveNav.astro";
+import GuestbookForm from "../../components/GuestbookForm/GuestbookForm.astro";
+import {
+  parseGuestbookEntryFormData,
+  type GuestbookEntrySubmission,
+} from "../../components/GuestbookForm/guestbookEntrySubmissionSchema.js";
+import { addEntry } from "../../utils/guestbook-entry.js";
 
 export const prerender = false;
-
 const { page: pageSlug } = Astro.params;
+
+// ==== Handle new submissions ====
+const cookieName = "guestbook-defaults";
+type GuestbookEntryDefaults = Pick<
+  GuestbookEntrySubmission,
+  "name" | "remember" | "iconType" | "builtinIcon" | "gravatarEmail"
+>;
+
+function encodeGuestbookDefaults({
+  name,
+  remember,
+  iconType,
+  builtinIcon,
+  gravatarEmail,
+}: GuestbookEntrySubmission): string {
+  const defaults: GuestbookEntryDefaults = {
+    name: remember ? name : "",
+    remember,
+    iconType: remember ? iconType : "builtin",
+    builtinIcon: remember ? builtinIcon : undefined,
+    gravatarEmail: remember ? gravatarEmail : undefined,
+  };
+
+  return JSON.stringify(defaults);
+}
+
+function decodeGuestbookDefaults(
+  cookieValue?: string,
+): GuestbookEntryDefaults | undefined {
+  if (cookieValue) {
+    return JSON.parse(cookieValue) as GuestbookEntryDefaults;
+  }
+  return undefined;
+}
+
+if (Astro.request.method === "POST") {
+  try {
+    // Only /gaestebuch/ is a valid endpoint for POSTing
+    // new guestbook entries
+    if (pageSlug !== undefined) {
+      return Astro.rewrite("/404");
+    }
+
+    // validate form data
+    const data = await Astro.request.formData();
+    const guestbookEntrySubmission = parseGuestbookEntryFormData(data);
+
+    // Save preferences to cookie
+    Astro.cookies.set(
+      cookieName,
+      encodeGuestbookDefaults(guestbookEntrySubmission),
+      {
+        maxAge: 60 * 60 * 24 * 100, // 100 days
+      },
+    );
+
+    // Ok --> check if spam
+    //    Not spam --> insert into DB, redirect back to guestbook
+
+    //    Maybe spam --> insert into moderation queue, redirect
+    //                   back to guestbook (but display message
+    //                   that comment is awaiting moderation)
+    //    Spam --> redirect back to guestbook (but display message
+    //             saying comment was rejected)
+
+    await addEntry(guestbookEntrySubmission);
+
+    // Redirect back to guestbook page to prevent form resubmission
+    // if user reloads page
+    return Astro.redirect(Astro.url.pathname, 303);
+  } catch (error) {
+    if (error instanceof Error) {
+      // Invalid --> display page with error messages in form
+      console.error(error.message);
+      throw error;
+    }
+  }
+}
+
+// ==== Display of guestbook pages... ====
+
 // Only "" (pageSlug = undefined) and "seite[number]" are valid routes
 const pageSlugRegex = /^seite(\d+)$/;
 if (pageSlug !== undefined && !pageSlugRegex.test(pageSlug)) {
   return Astro.rewrite("/404");
 }
+
+const guestbookFormDefaults: GuestbookEntryDefaults | undefined =
+  Astro.cookies.has(cookieName)
+    ? decodeGuestbookDefaults(Astro.cookies.get(cookieName)?.value)
+    : { name: "", remember: true, iconType: "builtin" };
 
 const pageSlugNumber =
   pageSlug === undefined ? undefined : parseInt(pageSlug.substring(5));
@@ -67,59 +158,8 @@ const isLastPage = pageCurrentIndex === pageCount - 1;
     >Seite {pageCurrentIndex + 1} von {pageCount}</Fragment
   >
 
-  <!--TODO: Implement posting
   <h2 class="hidden">Neuer Eintrag</h2>
-  <form method="post" action="./" id="gb-entry-form" accept-charset="utf-8">
-    <dl>
-      <dt><label for="gb-name">Name:</label></dt>
-      <dd class="basic"><input type="text" name="gb-name" id="gb-name" /></dd>
-      <dd class="advanced sep-after">
-        <input type="checkbox" name="gb-remember" id="gb-remember" />
-        <label for="gb-remember">Name und Icon fürs nächste Mal merken</label>
-      </dd>
-
-      <dt id="gb-icon-root-label">Icon:</dt>
-      <dd id="gb-icon-root-controls" class="sep-after">
-        <dl>
-          <dt>
-            <input type="radio" name="gb-icon-type" id="gb-icon-type-builtin" />
-            <label for="gb-icon-type-builtin">Abi1 Icon verwenden:</label>
-          </dt>
-          <dd>
-            <label for="gb-icon">Icon:</label>
-            <select name="gb-icon" id="gb-icon"> </select> / <button
-              type="button">Icon Vorschau</button
-            >
-          </dd>
-
-          <dt>
-            <input
-              type="radio"
-              name="gb-icon-type"
-              id="gb-icon-type-gravatar"
-            />
-            <label for="gb-icon-type-gravatar"
-              >Eigenes <a href="http://www.gravatar.com/">Gravatar</a> Icon verwenden:</label
-            >
-          </dt>
-          <dd>
-            <label for="gb-grav-email">Gravatar Email:</label>
-            <input type="text" id="gb-grav-email" name="gb-grav-email" />
-          </dd>
-        </dl>
-      </dd>
-
-      <dt><label for="gb-comment">Beitrag:</label></dt>
-      <dd class="basic">
-        <textarea cols="50" rows="8" name="gb-comment" id="gb-comment"
-        ></textarea>
-      </dd>
-    </dl>
-    <div>
-      <button id="gb-submit-button" name="gb-submit"> Eintragen </button>
-    </div>
-  </form>
-  -->
+  {isFirstPage ? <GuestbookForm formValues={guestbookFormDefaults} /> : null}
 
   <h2 class="hidden">Einträge</h2>
   {entries.map((entry) => <GuestbookComment {...entry} />)}

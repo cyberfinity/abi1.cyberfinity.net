@@ -13,8 +13,8 @@ export interface GuestbookEntry {
 }
 
 export interface DbGuestbookEntry extends EntryRow {
-  icon_filename: IconRow["filename"];
-  icon_name: IconRow["name"];
+  icon_filename: IconRow["filename"] | null;
+  icon_name: IconRow["name"] | null;
 }
 
 export function getGuestbookEntryPath(id: number): string {
@@ -169,18 +169,28 @@ export interface MonthCount {
 }
 
 export async function getArchiveStats() {
-  const dbMonthCounts =
-    (await sql`SELECT EXTRACT(YEAR FROM date) as year, EXTRACT(MONTH FROM date) as month, COUNT(*) FROM entries GROUP BY year, month ORDER BY year, month ASC;`) as DbMonthlyCount[];
+  const [dbMonthCounts, dbFirstEntry] = (await sql.transaction([
+    sql`SELECT EXTRACT(YEAR FROM date) as year, EXTRACT(MONTH FROM date) as month, COUNT(*) FROM entries GROUP BY year, month ORDER BY year, month ASC;`,
+    sql`SELECT * FROM ${guestbookEntriesSelectClause} ORDER BY date ASC LIMIT 1`,
+  ])) as [DbMonthlyCount[], DbGuestbookEntry[]];
 
-  const monthCounts: MonthCount[] = dbMonthCounts.map((dbMonthCount) => ({
-    year: parseInt(dbMonthCount.year),
-    month: parseInt(dbMonthCount.month),
-    entriesCount: parseInt(dbMonthCount.count),
-  }));
+  const monthCounts: MonthCount[] = (dbMonthCounts ?? []).map(
+    (dbMonthCount) => ({
+      year: parseInt(dbMonthCount.year),
+      month: parseInt(dbMonthCount.month),
+      entriesCount: parseInt(dbMonthCount.count),
+    }),
+  );
 
   let yearCounts: YearCount[] | null = null;
 
+  const firstEntry = toGuestbookEntry(dbFirstEntry[0]!);
+
   return {
+    getFirstEntryDate(): Date {
+      return firstEntry.date;
+    },
+
     /**
      * Total number of entries in guestbook.
      */
@@ -246,6 +256,10 @@ export async function getArchiveStats() {
         this.getYearCounts().find((yearCount) => yearCount.year === year)
           ?.entriesCount ?? 0
       );
+    },
+
+    getAllMonthCounts(): MonthCount[] {
+      return monthCounts;
     },
 
     getMonthCounts(yearOrCount: number | YearCount): MonthCount[] {
